@@ -66,6 +66,7 @@ export const initDatabase = (): void => {
       method VARCHAR(10) NOT NULL,
       headers TEXT, -- JSON 格式
       body TEXT,
+      params TEXT, -- JSON 格式
       auth_config TEXT, -- JSON 格式
       response_status INTEGER,
       response_headers TEXT, -- JSON 格式
@@ -76,7 +77,25 @@ export const initDatabase = (): void => {
     )
   `);
 
-  // 收藏请求表
+  // 收藏请求表 - 独立表结构
+  db.run(`
+    CREATE TABLE IF NOT EXISTS favorites (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      name VARCHAR(200) NOT NULL,
+      url TEXT NOT NULL,
+      method VARCHAR(10) NOT NULL,
+      headers TEXT, -- JSON 格式
+      body TEXT,
+      params TEXT, -- JSON 格式
+      auth_config TEXT, -- JSON 格式
+      folder VARCHAR(100) DEFAULT 'Default',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+    )
+  `);
+
+  // 收藏请求关联表（保留原有结构用于兼容）
   db.run(`
     CREATE TABLE IF NOT EXISTS favorite_requests (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -86,6 +105,24 @@ export const initDatabase = (): void => {
       FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
       FOREIGN KEY (request_id) REFERENCES request_history (id) ON DELETE CASCADE,
       UNIQUE(user_id, request_id)
+    )
+  `);
+
+  // 收藏夹表（独立的收藏请求存储）
+  db.run(`
+    CREATE TABLE IF NOT EXISTS favorites (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      name VARCHAR(200) NOT NULL,
+      url TEXT NOT NULL,
+      method VARCHAR(10) NOT NULL,
+      headers TEXT, -- JSON 格式
+      body TEXT,
+      params TEXT, -- JSON 格式
+      folder VARCHAR(100) DEFAULT 'Default',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
     )
   `);
 

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, Settings, HelpCircle, User, LogOut, ChevronDown } from 'lucide-react';
+import { Menu, User, LogOut, ChevronDown, Search } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 
 export const Header: React.FC = () => {
@@ -23,68 +23,76 @@ export const Header: React.FC = () => {
 
   return (
     <header className="h-10 bg-white border-b border-gray-200 flex items-center justify-between px-3">
+      {/* Left section */}
       <div className="flex items-center space-x-3">
         <button
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          className="p-1 hover:bg-gray-50 transition-colors"
+          className="p-0.5 hover:bg-gray-100 transition-colors"
         >
-          <Menu size={16} />
+          <Menu size={14} className="text-gray-600" />
         </button>
-        <div className="flex items-center space-x-2">
-          <div className="w-6 h-6 bg-blue-500 flex items-center justify-center">
+        
+        <div className="flex items-center space-x-1">
+          <div className="w-5 h-5 bg-blue-500 flex items-center justify-center">
             <span className="text-white font-bold text-xs">XH</span>
           </div>
-          <h1 className="text-base font-semibold text-gray-900">Axon</h1>
+          <span className="text-sm font-medium text-gray-900">Axon</span>
+        </div>
+      </div>
+
+      {/* Center section - Search */}
+      <div className="flex-1 max-w-xs mx-4">
+        <div className="relative">
+          <Search className="absolute left-1.5 top-1/2 transform -translate-y-1/2 w-2.5 h-2.5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search"
+            className="w-full pl-5 pr-8 py-0.5 text-xs border border-gray-300 focus:outline-none focus:border-blue-500 bg-gray-50"
+          />
+          <div className="absolute right-0.5 top-1/2 transform -translate-y-1/2">
+            <kbd className="px-0.5 py-0.5 text-xs text-gray-500 bg-white border border-gray-200">⌘K</kbd>
+          </div>
         </div>
       </div>
       
+      {/* Right section */}
       <div className="flex items-center space-x-1">
-        <button className="p-1 hover:bg-gray-50 transition-colors">
-          <HelpCircle size={16} />
-        </button>
-        <button className="p-1 hover:bg-gray-50 transition-colors">
-          <Settings size={16} />
-        </button>
-        
-        {/* 用户菜单 */}
+        {/* User menu */}
         <div className="relative" ref={menuRef}>
           <button
             onClick={() => setShowUserMenu(!showUserMenu)}
-            className="flex items-center space-x-2 p-2 hover:bg-gray-50 transition-colors"
+            className="flex items-center space-x-0.5 p-0.5 hover:bg-gray-100 transition-colors"
           >
             {auth.user?.avatar ? (
               <img
                 src={auth.user.avatar}
                 alt={auth.user.username}
-                className="w-8 h-8"
+                className="w-4 h-4"
               />
             ) : (
-              <div className="w-8 h-8 bg-gray-200 flex items-center justify-center">
-                <User size={16} />
+              <div className="w-4 h-4 bg-gray-300 flex items-center justify-center">
+                <User size={10} className="text-gray-600" />
               </div>
             )}
-            <span className="text-sm font-medium text-gray-700 hidden sm:block">
-              {auth.user?.username}
-            </span>
-            <ChevronDown size={16} className="text-gray-400" />
+            <ChevronDown size={10} className="text-gray-400" />
           </button>
           
-          {/* 下拉菜单 */}
+          {/* Dropdown menu */}
           {showUserMenu && (
-            <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 py-1 z-50">
-              <div className="px-4 py-2 border-b border-gray-100">
-                <p className="text-sm font-medium text-gray-900">{auth.user?.username}</p>
-                <p className="text-xs text-gray-500">{auth.user?.email || auth.user?.phone}</p>
+            <div className="absolute right-0 mt-1 w-40 bg-white border border-gray-200 py-1 z-50">
+              <div className="px-3 py-1 border-b border-gray-100">
+                <p className="text-xs font-medium text-gray-900">{auth.user?.username || 'User'}</p>
+                <p className="text-xs text-gray-500">{auth.user?.email || auth.user?.phone || 'xhaotech.cn'}</p>
               </div>
               <button
                 onClick={() => {
                   logout();
                   setShowUserMenu(false);
                 }}
-                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
+                className="w-full text-left px-3 py-1 text-xs text-gray-700 hover:bg-gray-50 flex items-center space-x-1"
               >
-                <LogOut size={16} />
-                <span>退出登录</span>
+                <LogOut size={10} />
+                <span>Sign out</span>
               </button>
             </div>
           )}

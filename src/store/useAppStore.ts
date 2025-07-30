@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import { httpClient } from '../lib/httpClient';
 
 export interface HttpMethod {
@@ -101,6 +100,8 @@ interface AppState {
   history: RequestHistory[];
   addToHistory: (request: RequestHistory) => void;
   clearHistory: () => void;
+  loadRequestHistory: () => Promise<void>;
+  deleteFromHistory: (id: string) => Promise<void>;
 
   // Favorites
   favorites: RequestHistory[];
@@ -108,18 +109,19 @@ interface AppState {
   removeFromFavorites: (id: string) => void;
   addTabToFavorites: (tabId: string) => void;
   loadFavoriteRequests: () => Promise<void>;
+  deleteFavorite: (id: string) => Promise<void>;
 
   // UI state
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
-  activePanel: 'history' | 'favorites' | 'environments';
-  setActivePanel: (panel: 'history' | 'favorites' | 'environments') => void;
+  activePanel: 'collections' | 'history' | 'favorites' | 'environments';
+  setActivePanel: (panel: 'collections' | 'history' | 'favorites' | 'environments') => void;
 
   // Backend connection
   testBackendConnection: () => Promise<boolean>;
 }
 
-export const useAppStore = create<AppState>((set, get) => ({
+export const useAppStore = create<AppState>((set) => ({
   // Authentication
   auth: {
     isAuthenticated: false,
@@ -252,40 +254,66 @@ export const useAppStore = create<AppState>((set, get) => ({
   // UI state
   sidebarCollapsed: false,
   setSidebarCollapsed: (sidebarCollapsed: boolean) => set({ sidebarCollapsed }),
-  activePanel: 'history' as const,
-  setActivePanel: (activePanel: 'history' | 'favorites' | 'environments') => set({ activePanel }),
+  activePanel: 'collections' as const,
+  setActivePanel: (activePanel: 'collections' | 'history' | 'favorites' | 'environments') => set({ activePanel }),
 
   // Load saved and favorite requests
   loadSavedRequests: async () => {
     try {
-      const response = await httpClient.getSavedRequests();
-      if (response.success && response.data?.requests) {
-        // 将保存的请求转换为 tabs 格式并添加到 tabs 中
-        const savedTabs = response.data.requests.map((req: any) => ({
+      const response = await httpClient.getRequestHistory();
+      if (response.success && response.data?.history) {
+        // 将历史请求转换为 history 格式
+        const historyItems = response.data.history.map((req: any) => ({
           id: req.id,
-          name: req.name,
           url: req.url,
           method: req.method,
-          params: req.params || {},
           headers: req.headers || {},
           body: req.body || '',
-          auth: req.auth || { type: 'none' },
-          isSaved: true
+          timestamp: new Date(req.created_at).getTime(),
+          response: null
         }));
         
-        // 合并到现有 tabs 中（避免重复）
-        const currentTabs = get().tabs;
-        const newTabs = savedTabs.filter((savedTab: any) => 
-          !currentTabs.some(tab => tab.id === savedTab.id)
-        );
-        
-        if (newTabs.length > 0) {
-          set({ tabs: [...currentTabs, ...newTabs] });
-          console.log('Loaded saved requests:', newTabs.length);
-        }
+        set({ history: historyItems });
+        console.log('Loaded request history:', historyItems.length);
       }
     } catch (error) {
-      console.error('Failed to load saved requests:', error);
+      console.error('Failed to load request history:', error);
+    }
+  },
+
+  loadRequestHistory: async () => {
+    try {
+      const response = await httpClient.getRequestHistory();
+      if (response.success && response.data?.history) {
+        const historyItems = response.data.history.map((req: any) => ({
+          id: req.id,
+          url: req.url,
+          method: req.method,
+          headers: req.headers || {},
+          body: req.body || '',
+          timestamp: new Date(req.created_at).getTime(),
+          response: null
+        }));
+        
+        set({ history: historyItems });
+        console.log('Loaded request history:', historyItems.length);
+      }
+    } catch (error) {
+      console.error('Failed to load request history:', error);
+    }
+  },
+
+  deleteFromHistory: async (id: string) => {
+    try {
+      const response = await httpClient.deleteHistory(id);
+      if (response.success) {
+        set((state) => ({
+          history: state.history.filter(item => item.id !== id)
+        }));
+        console.log('Deleted from history:', id);
+      }
+    } catch (error) {
+      console.error('Failed to delete from history:', error);
     }
   },
 
@@ -300,7 +328,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           method: req.method,
           headers: req.headers || {},
           body: req.body || '',
-          timestamp: new Date(req.timestamp).getTime(),
+          timestamp: new Date(req.created_at).getTime(),
           response: null // 收藏的请求没有响应数据
         }));
         
@@ -309,6 +337,20 @@ export const useAppStore = create<AppState>((set, get) => ({
       }
     } catch (error) {
       console.error('Failed to load favorite requests:', error);
+    }
+  },
+
+  deleteFavorite: async (id: string) => {
+    try {
+      const response = await httpClient.deleteFavorite(id);
+      if (response.success) {
+        set((state) => ({
+          favorites: state.favorites.filter(item => item.id !== id)
+        }));
+        console.log('Deleted favorite:', id);
+      }
+    } catch (error) {
+      console.error('Failed to delete favorite:', error);
     }
   },
 

@@ -203,7 +203,7 @@ class HttpClient {
     }
   }
 
-  // 保存请求
+  // 保存请求到历史记录
   async saveRequest(request: {
     name: string;
     url: string;
@@ -214,7 +214,7 @@ class HttpClient {
     auth?: any;
   }): Promise<ApiResponse> {
     try {
-      const response = await this.post('/api/requests/save', request);
+      const response = await this.post('/api/history', request);
       return response;
     } catch (error) {
       console.error('Save request failed:', error);
@@ -231,9 +231,10 @@ class HttpClient {
     headers?: Record<string, string>;
     body?: string;
     auth?: any;
+    folder?: string;
   }): Promise<ApiResponse> {
     try {
-      const response = await this.post('/api/requests/favorite', request);
+      const response = await this.post('/api/favorites', request);
       return response;
     } catch (error) {
       console.error('Add to favorites failed:', error);
@@ -241,24 +242,81 @@ class HttpClient {
     }
   }
 
-  // 获取保存的请求
-  async getSavedRequests(): Promise<ApiResponse> {
+  // 获取请求历史
+  async getRequestHistory(params?: {
+    page?: number;
+    limit?: number;
+    method?: string;
+    search?: string;
+  }): Promise<ApiResponse> {
     try {
-      const response = await this.get('/api/requests/saved');
+      const queryParams = new URLSearchParams();
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.limit) queryParams.append('limit', params.limit.toString());
+      if (params?.method) queryParams.append('method', params.method);
+      if (params?.search) queryParams.append('search', params.search);
+      
+      const url = `/api/history${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+      const response = await this.get(url);
       return response;
     } catch (error) {
-      console.error('Get saved requests failed:', error);
+      console.error('Get request history failed:', error);
       throw error;
     }
   }
 
   // 获取收藏的请求
-  async getFavoriteRequests(): Promise<ApiResponse> {
+  async getFavoriteRequests(folder?: string): Promise<ApiResponse> {
     try {
-      const response = await this.get('/api/requests/favorites');
+      const url = folder ? `/api/favorites?folder=${encodeURIComponent(folder)}` : '/api/favorites';
+      const response = await this.get(url);
       return response;
     } catch (error) {
       console.error('Get favorite requests failed:', error);
+      throw error;
+    }
+  }
+
+  // 删除历史记录
+  async deleteHistory(id: string): Promise<ApiResponse> {
+    try {
+      const response = await this.delete(`/api/history/${id}`);
+      return response;
+    } catch (error) {
+      console.error('Delete history failed:', error);
+      throw error;
+    }
+  }
+
+  // 批量删除历史记录
+  async batchDeleteHistory(ids: string[]): Promise<ApiResponse> {
+    try {
+      const response = await this.delete('/api/history', { ids });
+      return response;
+    } catch (error) {
+      console.error('Batch delete history failed:', error);
+      throw error;
+    }
+  }
+
+  // 删除收藏
+  async deleteFavorite(id: string): Promise<ApiResponse> {
+    try {
+      const response = await this.delete(`/api/favorites/${id}`);
+      return response;
+    } catch (error) {
+      console.error('Delete favorite failed:', error);
+      throw error;
+    }
+  }
+
+  // 更新收藏
+  async updateFavorite(id: string, data: any): Promise<ApiResponse> {
+    try {
+      const response = await this.put(`/api/favorites/${id}`, data);
+      return response;
+    } catch (error) {
+      console.error('Update favorite failed:', error);
       throw error;
     }
   }

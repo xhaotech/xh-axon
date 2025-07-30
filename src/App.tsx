@@ -3,10 +3,11 @@ import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { MainPanel } from './components/MainPanel';
 import { LoginPage } from './components/LoginPage';
+import { StatusBar } from './components/StatusBar';
 import { useAppStore } from './store/useAppStore';
 
 function App() {
-  const { sidebarCollapsed, auth, testBackendConnection, initializeAuth, loadSavedRequests, loadFavoriteRequests } = useAppStore();
+  const { sidebarCollapsed, auth, testBackendConnection, initializeAuth, loadRequestHistory, loadFavoriteRequests } = useAppStore();
   const [isInitializing, setIsInitializing] = useState(true);
 
   // 初始化应用状态
@@ -16,10 +17,10 @@ function App() {
       initializeAuth();
       // 测试后端连接
       const isBackendHealthy = await testBackendConnection();
-      // 如果后端可用，加载保存的数据
-      if (isBackendHealthy) {
+      // 如果后端可用且用户已登录，加载保存的数据
+      if (isBackendHealthy && auth.isAuthenticated) {
         await Promise.all([
-          loadSavedRequests(),
+          loadRequestHistory(),
           loadFavoriteRequests()
         ]);
       }
@@ -28,7 +29,7 @@ function App() {
     };
     
     initApp();
-  }, [initializeAuth, testBackendConnection, loadSavedRequests, loadFavoriteRequests]);
+  }, [initializeAuth, testBackendConnection, loadRequestHistory, loadFavoriteRequests, auth.isAuthenticated]);
 
   // 显示加载状态
   if (isInitializing) {
@@ -51,16 +52,17 @@ function App() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="h-screen flex flex-col bg-white">
       <Header />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
-        <div className={`flex-1 transition-all duration-300 ${
-          sidebarCollapsed ? 'ml-0' : 'ml-80'
+        <div className={`flex-1 transition-all duration-200 ${
+          sidebarCollapsed ? 'ml-0' : 'ml-72'
         }`}>
           <MainPanel />
         </div>
       </div>
+      <StatusBar />
     </div>
   );
 }

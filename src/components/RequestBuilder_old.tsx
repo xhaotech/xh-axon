@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Send, Save, Star } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Save, Star, GripHorizontal } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { httpClient } from '../lib/httpClient';
 import { ResponseViewer } from './ResponseViewer';
@@ -15,8 +15,46 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
   const [activeSection, setActiveSection] = useState<'params' | 'headers' | 'body' | 'auth'>('params');
   const [isLoading, setIsLoading] = useState(false);
   const [response, setResponse] = useState<any>(null);
+  
+  // 可调整大小的分隔条
+  const [upperHeight, setUpperHeight] = useState(45); // 百分比
+  const [isDragging, setIsDragging] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   if (!tab) return null;
+
+  // 鼠标拖拽处理
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isDragging || !containerRef.current) return;
+    
+    e.preventDefault();
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const newHeight = ((e.clientY - containerRect.top) / containerRect.height) * 100;
+    
+    // 限制在20%到80%之间
+    const clampedHeight = Math.max(20, Math.min(80, newHeight));
+    setUpperHeight(clampedHeight);
+  }, [isDragging]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, handleMouseMove, handleMouseUp]);
 
   const handleUrlChange = (url: string) => {
     updateTab(tabId, { url });
@@ -195,27 +233,14 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-white">
-      {/* Request Configuration Section - Upper Half */}
-      <div className="flex flex-col flex-shrink-0" style={{ minHeight: '45%', maxHeight: '60%' }}>
-        {/* Request Name */}
-        <div className="p-4 border-b border-gray-200 bg-gray-50 flex-shrink-0">
-          <input
-            type="text"
-            value={tab.name}
-            onChange={(e) => updateTab(tabId, { name: e.target.value })}
-            className="text-lg font-medium bg-transparent border-none focus:outline-none focus:ring-0 w-full"
-            placeholder="Request Name"
-          />
-        </div>
-        
-        {/* Request URL Bar */}
-        <div className="p-4 border-b border-gray-200 flex-shrink-0">
-        <div className="flex space-x-2">
+    <div ref={containerRef} className="flex flex-col h-full">
+      {/* Request URL Bar */}
+      <div className="bg-white p-4 border-b border-gray-200">
+        <div className="flex items-center space-x-3">
           <select
             value={tab.method}
             onChange={(e) => handleMethodChange(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-2 border border-gray-300 text-sm font-bold text-orange-600 bg-orange-50 focus:outline-none focus:border-orange-500 min-w-24"
           >
             <option value="GET">GET</option>
             <option value="POST">POST</option>
@@ -231,22 +256,20 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
             value={tab.url}
             onChange={(e) => handleUrlChange(e.target.value)}
             placeholder="Enter request URL"
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 px-4 py-2 border border-gray-300 focus:outline-none focus:border-orange-500 text-sm"
           />
           
           <button
             onClick={handleSendRequest}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+            disabled={isLoading}
+            className="bg-orange-500 text-white px-6 py-2 font-medium hover:bg-orange-600 transition-colors disabled:opacity-50"
           >
-            <Send size={16} />
-            <span>Send</span>
+            {isLoading ? 'Sending...' : 'Send'}
           </button>
           
           <button 
             onClick={handleSaveRequest}
-            className={`p-2 border border-gray-300 rounded-lg transition-colors ${
-              tab.isSaved ? 'text-green-600 bg-green-50' : 'text-gray-400 hover:text-gray-600'
-            }`}
+            className="p-2 text-gray-400 hover:text-gray-600 border border-gray-300 transition-colors"
             title="Save Request"
           >
             <Save size={16} />
@@ -254,7 +277,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
           
           <button 
             onClick={handleAddToFavorites}
-            className="p-2 text-gray-400 hover:text-yellow-500 border border-gray-300 rounded-lg transition-colors"
+            className="p-2 text-gray-400 hover:text-yellow-500 border border-gray-300 transition-colors"
             title="Add to Favorites"
           >
             <Star size={16} />
@@ -262,22 +285,27 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
         </div>
       </div>
 
+      {/* Upper Section - Request Configuration */}
+      <div 
+        className="flex flex-col bg-white"
+        style={{ height: `${upperHeight}%` }}
+      >
         {/* Request Configuration Tabs */}
-        <div className="border-b border-gray-200 flex-shrink-0">
+        <div className="border-b border-gray-200 bg-gray-50">
           <div className="flex">
             {[
               { id: 'params', label: 'Params' },
               { id: 'headers', label: 'Headers' },
               { id: 'body', label: 'Body' },
-              { id: 'auth', label: 'Auth' }
+              { id: 'auth', label: 'Authorization' }
             ].map((section) => (
               <button
                 key={section.id}
                 onClick={() => setActiveSection(section.id as any)}
-                className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                className={`px-4 py-3 text-sm font-medium transition-colors ${
                   activeSection === section.id
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? 'border-b-2 border-orange-500 text-orange-600 bg-white'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                 }`}
               >
                 {section.label}
@@ -287,316 +315,284 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
         </div>
 
         {/* Request Configuration Content */}
-        <div className="flex-1 overflow-y-auto min-h-0">
-        <div className="p-4">
-          {activeSection === 'params' && (
-            <div>
-              <h3 className="text-sm font-medium text-gray-900 mb-3">Query Parameters</h3>
-              <div className="space-y-2">
-                {Object.entries(tab.params || {}).map(([key, value], index) => (
-                  <div key={index} className="flex space-x-2">
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-4">
+            {activeSection === 'params' && (
+              <div>
+                <h3 className="text-sm font-medium text-gray-900 mb-3">Query Parameters</h3>
+                <div className="space-y-2">
+                  {Object.entries(tab.params || {}).map(([key, value], index) => (
+                    <div key={index} className="flex space-x-2">
+                      <input
+                        type="text"
+                        placeholder="Key"
+                        value={key}
+                        onChange={(e) => {
+                          const newParams = { ...tab.params };
+                          delete newParams[key];
+                          newParams[e.target.value] = value;
+                          updateTab(tabId, { params: newParams });
+                        }}
+                        className="flex-1 px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Value"
+                        value={value}
+                        onChange={(e) => {
+                          updateTab(tabId, { 
+                            params: { ...tab.params, [key]: e.target.value } 
+                          });
+                        }}
+                        className="flex-1 px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                      />
+                      <button 
+                        onClick={() => {
+                          const newParams = { ...tab.params };
+                          delete newParams[key];
+                          updateTab(tabId, { params: newParams });
+                        }}
+                        className="px-3 py-2 text-gray-400 hover:text-gray-600"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  <div className="flex space-x-2">
                     <input
                       type="text"
                       placeholder="Key"
-                      value={key}
-                      onChange={(e) => {
-                        const newParams = { ...tab.params };
-                        delete newParams[key];
-                        newParams[e.target.value] = value;
-                        updateTab(tabId, { params: newParams });
+                      className="flex-1 px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          const input = e.target as HTMLInputElement;
+                          const valueInput = input.nextElementSibling as HTMLInputElement;
+                          if (input.value && valueInput.value) {
+                            updateTab(tabId, { 
+                              params: { ...tab.params, [input.value]: valueInput.value } 
+                            });
+                            input.value = '';
+                            valueInput.value = '';
+                          }
+                        }
                       }}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <input
                       type="text"
                       placeholder="Value"
-                      value={value}
-                      onChange={(e) => {
-                        updateTab(tabId, { 
-                          params: { ...tab.params, [key]: e.target.value } 
-                        });
+                      className="flex-1 px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          const input = e.target as HTMLInputElement;
+                          const keyInput = input.previousElementSibling as HTMLInputElement;
+                          if (input.value && keyInput.value) {
+                            updateTab(tabId, { 
+                              params: { ...tab.params, [keyInput.value]: input.value } 
+                            });
+                            input.value = '';
+                            keyInput.value = '';
+                          }
+                        }
                       }}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                    <button 
-                      onClick={() => {
-                        const newParams = { ...tab.params };
-                        delete newParams[key];
-                        updateTab(tabId, { params: newParams });
-                      }}
-                      className="px-3 py-2 text-gray-400 hover:text-gray-600"
-                    >
-                      ×
-                    </button>
+                    <div className="w-8"></div>
                   </div>
-                ))}
-                <div className="flex space-x-2">
-                  <input
-                    type="text"
-                    placeholder="Key"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        const input = e.target as HTMLInputElement;
-                        const valueInput = input.nextElementSibling as HTMLInputElement;
-                        if (input.value && valueInput.value) {
-                          updateTab(tabId, { 
-                            params: { ...tab.params, [input.value]: valueInput.value } 
-                          });
-                          input.value = '';
-                          valueInput.value = '';
-                        }
-                      }
-                    }}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Value"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        const input = e.target as HTMLInputElement;
-                        const keyInput = input.previousElementSibling as HTMLInputElement;
-                        if (keyInput.value && input.value) {
-                          updateTab(tabId, { 
-                            params: { ...tab.params, [keyInput.value]: input.value } 
-                          });
-                          keyInput.value = '';
-                          input.value = '';
-                        }
-                      }
-                    }}
-                  />
-                  <button 
-                    onClick={(e) => {
-                      const container = e.currentTarget.parentElement;
-                      const keyInput = container?.querySelector('input:first-child') as HTMLInputElement;
-                      const valueInput = container?.querySelector('input:last-child') as HTMLInputElement;
-                      if (keyInput?.value && valueInput?.value) {
-                        updateTab(tabId, { 
-                          params: { ...tab.params, [keyInput.value]: valueInput.value } 
-                        });
-                        keyInput.value = '';
-                        valueInput.value = '';
-                      }
-                    }}
-                    className="px-3 py-2 text-blue-600 hover:text-blue-700 border border-blue-300 rounded"
-                  >
-                    +
-                  </button>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {activeSection === 'headers' && (
-            <div>
-              <h3 className="text-sm font-medium text-gray-900 mb-3">Headers</h3>
-              <div className="space-y-2">
-                {Object.entries(tab.headers || {}).map(([key, value], index) => (
-                  <div key={index} className="flex space-x-2">
+            {activeSection === 'headers' && (
+              <div>
+                <h3 className="text-sm font-medium text-gray-900 mb-3">Headers</h3>
+                <div className="space-y-2">
+                  {Object.entries(tab.headers || {}).map(([key, value], index) => (
+                    <div key={index} className="flex space-x-2">
+                      <input
+                        type="text"
+                        placeholder="Header name"
+                        value={key}
+                        onChange={(e) => {
+                          const newHeaders = { ...tab.headers };
+                          delete newHeaders[key];
+                          newHeaders[e.target.value] = value;
+                          updateTab(tabId, { headers: newHeaders });
+                        }}
+                        className="flex-1 px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Header value"
+                        value={value}
+                        onChange={(e) => {
+                          updateTab(tabId, { 
+                            headers: { ...tab.headers, [key]: e.target.value } 
+                          });
+                        }}
+                        className="flex-1 px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                      />
+                      <button 
+                        onClick={() => {
+                          const newHeaders = { ...tab.headers };
+                          delete newHeaders[key];
+                          updateTab(tabId, { headers: newHeaders });
+                        }}
+                        className="px-3 py-2 text-gray-400 hover:text-gray-600"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  <div className="flex space-x-2">
                     <input
                       type="text"
-                      placeholder="Header"
-                      value={key}
-                      onChange={(e) => {
-                        const newHeaders = { ...tab.headers };
-                        delete newHeaders[key];
-                        newHeaders[e.target.value] = value;
-                        updateTab(tabId, { headers: newHeaders });
+                      placeholder="Header name"
+                      className="flex-1 px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          const input = e.target as HTMLInputElement;
+                          const valueInput = input.nextElementSibling as HTMLInputElement;
+                          if (input.value && valueInput.value) {
+                            updateTab(tabId, { 
+                              headers: { ...tab.headers, [input.value]: valueInput.value } 
+                            });
+                            input.value = '';
+                            valueInput.value = '';
+                          }
+                        }
                       }}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <input
                       type="text"
-                      placeholder="Value"
-                      value={value}
-                      onChange={(e) => {
-                        updateTab(tabId, { 
-                          headers: { ...tab.headers, [key]: e.target.value } 
-                        });
+                      placeholder="Header value"
+                      className="flex-1 px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          const input = e.target as HTMLInputElement;
+                          const keyInput = input.previousElementSibling as HTMLInputElement;
+                          if (input.value && keyInput.value) {
+                            updateTab(tabId, { 
+                              headers: { ...tab.headers, [keyInput.value]: input.value } 
+                            });
+                            input.value = '';
+                            keyInput.value = '';
+                          }
+                        }
                       }}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                    <button 
-                      onClick={() => {
-                        const newHeaders = { ...tab.headers };
-                        delete newHeaders[key];
-                        updateTab(tabId, { headers: newHeaders });
-                      }}
-                      className="px-3 py-2 text-gray-400 hover:text-gray-600"
-                    >
-                      ×
-                    </button>
+                    <div className="w-8"></div>
                   </div>
-                ))}
-                <div className="flex space-x-2">
-                  <input
-                    type="text"
-                    placeholder="Header"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        const input = e.target as HTMLInputElement;
-                        const valueInput = input.nextElementSibling as HTMLInputElement;
-                        if (input.value && valueInput.value) {
-                          updateTab(tabId, { 
-                            headers: { ...tab.headers, [input.value]: valueInput.value } 
-                          });
-                          input.value = '';
-                          valueInput.value = '';
-                        }
-                      }
-                    }}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Value"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        const input = e.target as HTMLInputElement;
-                        const headerInput = input.previousElementSibling as HTMLInputElement;
-                        if (headerInput.value && input.value) {
-                          updateTab(tabId, { 
-                            headers: { ...tab.headers, [headerInput.value]: input.value } 
-                          });
-                          headerInput.value = '';
-                          input.value = '';
-                        }
-                      }
-                    }}
-                  />
-                  <button 
-                    onClick={(e) => {
-                      const container = e.currentTarget.parentElement;
-                      const headerInput = container?.querySelector('input:first-child') as HTMLInputElement;
-                      const valueInput = container?.querySelector('input:last-child') as HTMLInputElement;
-                      if (headerInput?.value && valueInput?.value) {
-                        updateTab(tabId, { 
-                          headers: { ...tab.headers, [headerInput.value]: valueInput.value } 
-                        });
-                        headerInput.value = '';
-                        valueInput.value = '';
-                      }
-                    }}
-                    className="px-3 py-2 text-blue-600 hover:text-blue-700 border border-blue-300 rounded"
-                  >
-                    +
-                  </button>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {activeSection === 'body' && (
-            <div>
-              <h3 className="text-sm font-medium text-gray-900 mb-3">Request Body</h3>
-              <div className="space-y-4">
-                <div className="flex space-x-4">
-                  <label className="flex items-center">
-                    <input type="radio" name="bodyType" defaultChecked className="mr-2" />
-                    <span className="text-sm">JSON</span>
-                  </label>
-                  <label className="flex items-center">
-                    <input type="radio" name="bodyType" className="mr-2" />
-                    <span className="text-sm">Form Data</span>
-                  </label>
-                  <label className="flex items-center">
-                    <input type="radio" name="bodyType" className="mr-2" />
-                    <span className="text-sm">Raw</span>
-                  </label>
-                </div>
+            {activeSection === 'body' && (
+              <div>
+                <h3 className="text-sm font-medium text-gray-900 mb-3">Request Body</h3>
                 <textarea
-                  placeholder="Enter request body"
                   value={tab.body || ''}
                   onChange={(e) => updateTab(tabId, { body: e.target.value })}
-                  className="w-full h-64 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                  placeholder="Enter request body (JSON, XML, etc.)"
+                  className="w-full h-32 px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 font-mono text-sm"
                 />
               </div>
-            </div>
-          )}
+            )}
 
-          {activeSection === 'auth' && (
-            <div>
-              <h3 className="text-sm font-medium text-gray-900 mb-3">Authorization</h3>
-              <div className="space-y-4">
-                <select 
-                  value={tab.auth?.type || 'none'}
-                  onChange={(e) => updateTab(tabId, { 
-                    auth: { 
-                      ...tab.auth, 
-                      type: e.target.value as any 
-                    } 
-                  })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="none">No Auth</option>
-                  <option value="bearer">Bearer Token</option>
-                  <option value="basic">Basic Auth</option>
-                  <option value="oauth">OAuth 2.0</option>
-                </select>
-                
-                {tab.auth?.type === 'bearer' && (
-                  <div className="space-y-2">
-                    <input
-                      type="text"
-                      placeholder="Token"
-                      value={tab.auth?.token || ''}
+            {activeSection === 'auth' && (
+              <div>
+                <h3 className="text-sm font-medium text-gray-900 mb-3">Authentication</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Auth Type
+                    </label>
+                    <select
+                      value={tab.auth?.type || 'none'}
                       onChange={(e) => updateTab(tabId, { 
-                        auth: { 
-                          ...tab.auth, 
-                          token: e.target.value 
-                        } 
+                        auth: { ...tab.auth, type: e.target.value as any } 
                       })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                      className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                    >
+                      <option value="none">No Auth</option>
+                      <option value="basic">Basic Auth</option>
+                      <option value="bearer">Bearer Token</option>
+                    </select>
                   </div>
-                )}
-                
-                {tab.auth?.type === 'basic' && (
-                  <div className="space-y-2">
-                    <input
-                      type="text"
-                      placeholder="Username"
-                      value={tab.auth?.username || ''}
-                      onChange={(e) => updateTab(tabId, { 
-                        auth: { 
-                          ...tab.auth, 
-                          username: e.target.value 
-                        } 
-                      })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <input
-                      type="password"
-                      placeholder="Password"
-                      value={tab.auth?.password || ''}
-                      onChange={(e) => updateTab(tabId, { 
-                        auth: { 
-                          ...tab.auth, 
-                          password: e.target.value 
-                        } 
-                      })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                )}
+
+                  {tab.auth?.type === 'basic' && (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Username
+                        </label>
+                        <input
+                          type="text"
+                          value={tab.auth?.username || ''}
+                          onChange={(e) => updateTab(tabId, { 
+                            auth: { ...tab.auth, username: e.target.value } 
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Password
+                        </label>
+                        <input
+                          type="password"
+                          value={tab.auth?.password || ''}
+                          onChange={(e) => updateTab(tabId, { 
+                            auth: { ...tab.auth, password: e.target.value } 
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {tab.auth?.type === 'bearer' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Token
+                      </label>
+                      <input
+                        type="text"
+                        value={tab.auth?.token || ''}
+                        onChange={(e) => updateTab(tabId, { 
+                          auth: { ...tab.auth, token: e.target.value } 
+                        })}
+                        placeholder="Enter bearer token"
+                        className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Response Section - Lower Half */}
-      <div className="flex flex-col flex-1 min-h-0 border-t border-gray-200 bg-gray-50">
-        <div className="p-3 bg-gray-100 border-b border-gray-200 flex-shrink-0">
-          <h3 className="text-sm font-medium text-gray-900">Response</h3>
-        </div>
+      {/* Resizable Divider */}
+      <div 
+        className={`flex items-center justify-center h-2 bg-gray-200 border-t border-b border-gray-300 cursor-row-resize hover:bg-gray-300 transition-colors ${
+          isDragging ? 'bg-blue-200' : ''
+        }`}
+        onMouseDown={handleMouseDown}
+      >
+        <GripHorizontal size={16} className="text-gray-500" />
+      </div>
+
+      {/* Lower Section - Response */}
+      <div 
+        className="flex flex-col bg-gray-50"
+        style={{ height: `${100 - upperHeight}%` }}
+      >
         <div className="flex-1 p-3 min-h-0">
           {isLoading ? (
             <div className="bg-white border border-gray-200 rounded-lg p-8 text-center text-blue-600 h-full flex flex-col items-center justify-center">
               <div className="animate-spin w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full mb-4"></div>
               <span className="text-lg">Sending request...</span>
+              <span className="text-sm text-gray-500 mt-1">Please wait</span>
             </div>
           ) : response ? (
             <div className="bg-white border border-gray-200 rounded-lg h-full overflow-hidden shadow-sm">
@@ -610,7 +606,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                 </svg>
               </div>
               <span className="text-lg font-medium">Send a request to see the response</span>
-              <span className="text-sm text-gray-400 mt-1">Response will appear here</span>
+              <span className="text-sm text-gray-400 mt-1">Response will appear here with Monaco Editor</span>
             </div>
           )}
         </div>

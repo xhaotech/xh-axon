@@ -24,42 +24,47 @@ export const RequestTabs: React.FC = () => {
     addTab(newTab);
   };
 
+  const getMethodColor = (method: string) => {
+    switch (method) {
+      case 'GET': return 'text-green-600 bg-green-50';
+      case 'POST': return 'text-blue-600 bg-blue-50';
+      case 'PUT': return 'text-yellow-600 bg-yellow-50';
+      case 'DELETE': return 'text-red-600 bg-red-50';
+      case 'PATCH': return 'text-purple-600 bg-purple-50';
+      default: return 'text-gray-600 bg-gray-50';
+    }
+  };
+
   return (
-    <div className="bg-white border-b border-gray-200 flex items-center">
+    <div className="bg-gray-50 border-b border-gray-200 flex items-center">
       <div className="flex flex-1 overflow-x-auto">
         {tabs.map((tab) => (
           <div
             key={tab.id}
-            className={`flex items-center space-x-2 px-3 py-2 border-r border-gray-200 cursor-pointer min-w-0 ${
+            className={`flex items-center space-x-1 px-2 py-1 border-r border-gray-200 cursor-pointer min-w-0 group relative ${
               activeTab === tab.id
-                ? 'bg-blue-50 border-b-2 border-blue-500'
-                : 'hover:bg-gray-50'
+                ? 'bg-white border-b-2 border-blue-500'
+                : 'hover:bg-gray-100'
             }`}
             onClick={() => setActiveTab(tab.id)}
           >
-            <span className={`text-xs font-medium px-1.5 py-0.5 ${
-              tab.method === 'GET' ? 'bg-green-100 text-green-700' :
-              tab.method === 'POST' ? 'bg-blue-100 text-blue-700' :
-              tab.method === 'PUT' ? 'bg-yellow-100 text-yellow-700' :
-              tab.method === 'DELETE' ? 'bg-red-100 text-red-700' :
-              'bg-gray-100 text-gray-700'
-            }`}>
+            <span className={`text-xs font-bold px-1 py-0.5 ${getMethodColor(tab.method)}`}>
               {tab.method}
             </span>
-            <span className="text-xs text-gray-700 truncate flex-1">
+            <span className="text-xs text-gray-700 truncate flex-1 max-w-24">
               {tab.name}
             </span>
             {tab.isModified && (
-              <div className="w-1.5 h-1.5 bg-orange-400 rounded-full"></div>
+              <div className="w-1 h-1 bg-blue-400"></div>
             )}
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 closeTab(tab.id);
               }}
-              className="text-gray-400 hover:text-gray-600 flex-shrink-0"
+              className="text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
             >
-              <X size={12} />
+              <X size={8} />
             </button>
           </div>
         ))}
@@ -67,9 +72,9 @@ export const RequestTabs: React.FC = () => {
       
       <button
         onClick={handleNewTab}
-        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 border-l border-gray-200"
+        className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 border-l border-gray-200 flex-shrink-0"
       >
-        <Plus size={14} />
+        <Plus size={12} />
       </button>
     </div>
   );
