@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Save, Star, GripHorizontal } from 'lucide-react';
+import React, { useState } from 'react';
+import { Send, Save, Star } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { httpClient } from '../lib/httpClient';
 import { ResponseViewer } from './ResponseViewer';
@@ -15,46 +15,8 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
   const [activeSection, setActiveSection] = useState<'params' | 'headers' | 'body' | 'auth'>('params');
   const [isLoading, setIsLoading] = useState(false);
   const [response, setResponse] = useState<any>(null);
-  
-  // 可调整大小的分隔条
-  const [upperHeight, setUpperHeight] = useState(45); // 百分比
-  const [isDragging, setIsDragging] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   if (!tab) return null;
-
-  // 鼠标拖拽处理
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  }, []);
-
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isDragging || !containerRef.current) return;
-    
-    e.preventDefault();
-    const containerRect = containerRef.current.getBoundingClientRect();
-    const newHeight = ((e.clientY - containerRect.top) / containerRect.height) * 100;
-    
-    // 限制在20%到80%之间
-    const clampedHeight = Math.max(20, Math.min(80, newHeight));
-    setUpperHeight(clampedHeight);
-  }, [isDragging]);
-
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-  }, []);
-
-  useEffect(() => {
-    if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [isDragging, handleMouseMove, handleMouseUp]);
 
   const handleUrlChange = (url: string) => {
     updateTab(tabId, { url });
@@ -233,19 +195,16 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
   };
 
   return (
-    <div ref={containerRef} className="flex flex-col h-full select-none">
+    <div className="flex flex-col h-full">
       {/* Upper Section - Request Configuration */}
-      <div 
-        className="flex flex-col bg-white"
-        style={{ height: `${upperHeight}%` }}
-      >
+      <div className="flex flex-col bg-white" style={{ height: '45%' }}>
         {/* Request Name */}
         <div className="p-4 border-b border-gray-200 bg-gray-50 flex-shrink-0">
           <input
             type="text"
             value={tab.name}
             onChange={(e) => updateTab(tabId, { name: e.target.value })}
-            className="font-medium bg-transparent border-none focus:outline-none focus:ring-0 w-full text-sm"
+            className="text-lg font-medium bg-transparent border-none focus:outline-none focus:ring-0 w-full"
             placeholder="Request Name"
           />
         </div>
@@ -256,7 +215,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
             <select
               value={tab.method}
               onChange={(e) => handleMethodChange(e.target.value)}
-              className="px-3 py-2 border border-gray-300 bg-white text-sm font-medium focus:outline-none focus:border-blue-500"
+              className="px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="GET">GET</option>
               <option value="POST">POST</option>
@@ -272,13 +231,13 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
               value={tab.url}
               onChange={(e) => handleUrlChange(e.target.value)}
               placeholder="Enter request URL"
-              className="flex-1 px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             
             <button
               onClick={handleSendRequest}
               disabled={isLoading}
-              className="bg-blue-500 text-white px-6 py-2 hover:bg-blue-600 transition-colors flex items-center space-x-2 disabled:opacity-50"
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 disabled:opacity-50"
             >
               <Send size={16} />
               <span>{isLoading ? 'Sending...' : 'Send'}</span>
@@ -286,7 +245,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
             
             <button 
               onClick={handleSaveRequest}
-              className={`p-2 border border-gray-300 transition-colors ${
+              className={`p-2 border border-gray-300 rounded-lg transition-colors ${
                 tab.isSaved ? 'text-green-600 bg-green-50' : 'text-gray-400 hover:text-gray-600'
               }`}
               title="Save Request"
@@ -296,7 +255,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
             
             <button 
               onClick={handleAddToFavorites}
-              className="p-2 text-gray-400 hover:text-yellow-500 border border-gray-300 transition-colors"
+              className="p-2 text-gray-400 hover:text-yellow-500 border border-gray-300 rounded-lg transition-colors"
               title="Add to Favorites"
             >
               <Star size={16} />
@@ -347,7 +306,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                           newParams[e.target.value] = value;
                           updateTab(tabId, { params: newParams });
                         }}
-                        className="flex-1 px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                       <input
                         type="text"
@@ -358,7 +317,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                             params: { ...tab.params, [key]: e.target.value } 
                           });
                         }}
-                        className="flex-1 px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                       <button 
                         onClick={() => {
@@ -376,7 +335,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                     <input
                       type="text"
                       placeholder="Key"
-                      className="flex-1 px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                       onKeyPress={(e) => {
                         if (e.key === 'Enter') {
                           const input = e.target as HTMLInputElement;
@@ -394,7 +353,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                     <input
                       type="text"
                       placeholder="Value"
-                      className="flex-1 px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                       onKeyPress={(e) => {
                         if (e.key === 'Enter') {
                           const input = e.target as HTMLInputElement;
@@ -431,7 +390,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                           newHeaders[e.target.value] = value;
                           updateTab(tabId, { headers: newHeaders });
                         }}
-                        className="flex-1 px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                       <input
                         type="text"
@@ -442,7 +401,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                             headers: { ...tab.headers, [key]: e.target.value } 
                           });
                         }}
-                        className="flex-1 px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                       <button 
                         onClick={() => {
@@ -460,7 +419,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                     <input
                       type="text"
                       placeholder="Header name"
-                      className="flex-1 px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                       onKeyPress={(e) => {
                         if (e.key === 'Enter') {
                           const input = e.target as HTMLInputElement;
@@ -478,7 +437,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                     <input
                       type="text"
                       placeholder="Header value"
-                      className="flex-1 px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                       onKeyPress={(e) => {
                         if (e.key === 'Enter') {
                           const input = e.target as HTMLInputElement;
@@ -506,7 +465,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                   value={tab.body || ''}
                   onChange={(e) => updateTab(tabId, { body: e.target.value })}
                   placeholder="Enter request body (JSON, XML, etc.)"
-                  className="w-full h-32 px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 font-mono text-sm"
+                  className="w-full h-32 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
                 />
               </div>
             )}
@@ -524,7 +483,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                       onChange={(e) => updateTab(tabId, { 
                         auth: { ...tab.auth, type: e.target.value as any } 
                       })}
-                      className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                      className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="none">No Auth</option>
                       <option value="basic">Basic Auth</option>
@@ -544,7 +503,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                           onChange={(e) => updateTab(tabId, { 
                             auth: { ...tab.auth, username: e.target.value } 
                           })}
-                          className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                          className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div>
@@ -557,7 +516,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                           onChange={(e) => updateTab(tabId, { 
                             auth: { ...tab.auth, password: e.target.value } 
                           })}
-                          className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                          className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                     </div>
@@ -575,7 +534,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                           auth: { ...tab.auth, token: e.target.value } 
                         })}
                         placeholder="Enter bearer token"
-                        className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                        className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                   )}
@@ -586,21 +545,11 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
         </div>
       </div>
 
-      {/* Resizable Divider */}
-      <div 
-        className={`flex items-center justify-center h-2 bg-gray-200 border-t border-b border-gray-300 cursor-row-resize hover:bg-gray-300 transition-colors ${
-          isDragging ? 'bg-blue-200' : ''
-        }`}
-        onMouseDown={handleMouseDown}
-      >
-        <GripHorizontal size={16} className="text-gray-500" />
-      </div>
-
       {/* Lower Section - Response */}
-      <div 
-        className="flex flex-col bg-gray-50"
-        style={{ height: `${100 - upperHeight}%` }}
-      >
+      <div className="flex flex-col bg-gray-50 border-t border-gray-200" style={{ height: '55%' }}>
+        <div className="p-3 bg-gray-100 border-b border-gray-200 flex-shrink-0">
+          <h3 className="text-sm font-medium text-gray-900">Response</h3>
+        </div>
         <div className="flex-1 p-3 min-h-0">
           {isLoading ? (
             <div className="bg-white border border-gray-200 rounded-lg p-8 text-center text-blue-600 h-full flex flex-col items-center justify-center">

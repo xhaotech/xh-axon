@@ -245,7 +245,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
             type="text"
             value={tab.name}
             onChange={(e) => updateTab(tabId, { name: e.target.value })}
-            className="font-medium bg-transparent border-none focus:outline-none focus:ring-0 w-full text-sm"
+            className="text-lg font-medium bg-transparent border-none focus:outline-none focus:ring-0 w-full"
             placeholder="Request Name"
           />
         </div>
@@ -256,7 +256,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
             <select
               value={tab.method}
               onChange={(e) => handleMethodChange(e.target.value)}
-              className="px-3 py-2 border border-gray-300 bg-white text-sm font-medium focus:outline-none focus:border-blue-500"
+              className="px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="GET">GET</option>
               <option value="POST">POST</option>
@@ -272,13 +272,13 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
               value={tab.url}
               onChange={(e) => handleUrlChange(e.target.value)}
               placeholder="Enter request URL"
-              className="flex-1 px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             
             <button
               onClick={handleSendRequest}
               disabled={isLoading}
-              className="bg-blue-500 text-white px-6 py-2 hover:bg-blue-600 transition-colors flex items-center space-x-2 disabled:opacity-50"
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 disabled:opacity-50"
             >
               <Send size={16} />
               <span>{isLoading ? 'Sending...' : 'Send'}</span>
@@ -286,7 +286,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
             
             <button 
               onClick={handleSaveRequest}
-              className={`p-2 border border-gray-300 transition-colors ${
+              className={`p-2 border border-gray-300 rounded-lg transition-colors ${
                 tab.isSaved ? 'text-green-600 bg-green-50' : 'text-gray-400 hover:text-gray-600'
               }`}
               title="Save Request"
@@ -296,7 +296,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
             
             <button 
               onClick={handleAddToFavorites}
-              className="p-2 text-gray-400 hover:text-yellow-500 border border-gray-300 transition-colors"
+              className="p-2 text-gray-400 hover:text-yellow-500 border border-gray-300 rounded-lg transition-colors"
               title="Add to Favorites"
             >
               <Star size={16} />
@@ -347,7 +347,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                           newParams[e.target.value] = value;
                           updateTab(tabId, { params: newParams });
                         }}
-                        className="flex-1 px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                       <input
                         type="text"
@@ -358,7 +358,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                             params: { ...tab.params, [key]: e.target.value } 
                           });
                         }}
-                        className="flex-1 px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                       <button 
                         onClick={() => {
@@ -376,7 +376,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                     <input
                       type="text"
                       placeholder="Key"
-                      className="flex-1 px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                       onKeyPress={(e) => {
                         if (e.key === 'Enter') {
                           const input = e.target as HTMLInputElement;
@@ -394,7 +394,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                     <input
                       type="text"
                       placeholder="Value"
-                      className="flex-1 px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                       onKeyPress={(e) => {
                         if (e.key === 'Enter') {
                           const input = e.target as HTMLInputElement;
@@ -431,7 +431,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                           newHeaders[e.target.value] = value;
                           updateTab(tabId, { headers: newHeaders });
                         }}
-                        className="flex-1 px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                       <input
                         type="text"
@@ -442,7 +442,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                             headers: { ...tab.headers, [key]: e.target.value } 
                           });
                         }}
-                        className="flex-1 px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                       <button 
                         onClick={() => {
@@ -460,7 +460,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                     <input
                       type="text"
                       placeholder="Header name"
-                      className="flex-1 px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                       onKeyPress={(e) => {
                         if (e.key === 'Enter') {
                           const input = e.target as HTMLInputElement;
@@ -478,7 +478,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                     <input
                       type="text"
                       placeholder="Header value"
-                      className="flex-1 px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                       onKeyPress={(e) => {
                         if (e.key === 'Enter') {
                           const input = e.target as HTMLInputElement;
@@ -506,7 +506,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                   value={tab.body || ''}
                   onChange={(e) => updateTab(tabId, { body: e.target.value })}
                   placeholder="Enter request body (JSON, XML, etc.)"
-                  className="w-full h-32 px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 font-mono text-sm"
+                  className="w-full h-32 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
                 />
               </div>
             )}
@@ -524,7 +524,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                       onChange={(e) => updateTab(tabId, { 
                         auth: { ...tab.auth, type: e.target.value as any } 
                       })}
-                      className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                      className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="none">No Auth</option>
                       <option value="basic">Basic Auth</option>
@@ -544,7 +544,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                           onChange={(e) => updateTab(tabId, { 
                             auth: { ...tab.auth, username: e.target.value } 
                           })}
-                          className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                          className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div>
@@ -557,7 +557,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                           onChange={(e) => updateTab(tabId, { 
                             auth: { ...tab.auth, password: e.target.value } 
                           })}
-                          className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                          className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                     </div>
@@ -575,7 +575,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                           auth: { ...tab.auth, token: e.target.value } 
                         })}
                         placeholder="Enter bearer token"
-                        className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                        className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                   )}

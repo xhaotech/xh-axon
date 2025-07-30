@@ -211,7 +211,7 @@ export const LoginPage: React.FC = () => {
                     type="text"
                     value={usernameForm.username}
                     onChange={(e) => setUsernameForm({ ...usernameForm, username: e.target.value })}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 focus:outline-none focus:border-blue-500"
                     placeholder="请输入用户名"
                   />
                 </div>
@@ -227,7 +227,7 @@ export const LoginPage: React.FC = () => {
                     type={showPassword ? 'text' : 'password'}
                     value={usernameForm.password}
                     onChange={(e) => setUsernameForm({ ...usernameForm, password: e.target.value })}
-                    className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full pl-10 pr-12 py-3 border border-gray-300 focus:outline-none focus:border-blue-500"
                     placeholder="请输入密码"
                   />
                   <button
@@ -270,7 +270,7 @@ export const LoginPage: React.FC = () => {
                     type="tel"
                     value={phoneForm.phone}
                     onChange={(e) => setPhoneForm({ ...phoneForm, phone: e.target.value })}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 focus:outline-none focus:border-blue-500"
                     placeholder="请输入手机号"
                   />
                 </div>
@@ -287,7 +287,7 @@ export const LoginPage: React.FC = () => {
                       type="text"
                       value={phoneForm.verificationCode}
                       onChange={(e) => setPhoneForm({ ...phoneForm, verificationCode: e.target.value })}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 focus:outline-none focus:border-blue-500"
                       placeholder="请输入验证码"
                     />
                   </div>
@@ -295,7 +295,7 @@ export const LoginPage: React.FC = () => {
                     type="button"
                     onClick={handleSendVerificationCode}
                     disabled={countdown > 0 || isLoading}
-                    className="px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium whitespace-nowrap"
+                    className="px-4 py-3 bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium whitespace-nowrap"
                   >
                     {countdown > 0 ? `${countdown}s` : '发送验证码'}
                   </button>

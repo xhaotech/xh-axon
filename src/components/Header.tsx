@@ -22,44 +22,44 @@ export const Header: React.FC = () => {
   }, []);
 
   return (
-    <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4">
-      <div className="flex items-center space-x-4">
+    <header className="h-10 bg-white border-b border-gray-200 flex items-center justify-between px-3">
+      <div className="flex items-center space-x-3">
         <button
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+          className="p-1 hover:bg-gray-50 transition-colors"
         >
-          <Menu size={20} />
+          <Menu size={16} />
         </button>
         <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">XH</span>
+          <div className="w-6 h-6 bg-blue-500 flex items-center justify-center">
+            <span className="text-white font-bold text-xs">XH</span>
           </div>
-          <h1 className="text-xl font-semibold text-gray-900">Axon</h1>
+          <h1 className="text-base font-semibold text-gray-900">Axon</h1>
         </div>
       </div>
       
-      <div className="flex items-center space-x-2">
-        <button className="p-2 hover:bg-gray-100 rounded-md transition-colors">
-          <HelpCircle size={20} />
+      <div className="flex items-center space-x-1">
+        <button className="p-1 hover:bg-gray-50 transition-colors">
+          <HelpCircle size={16} />
         </button>
-        <button className="p-2 hover:bg-gray-100 rounded-md transition-colors">
-          <Settings size={20} />
+        <button className="p-1 hover:bg-gray-50 transition-colors">
+          <Settings size={16} />
         </button>
         
         {/* 用户菜单 */}
         <div className="relative" ref={menuRef}>
           <button
             onClick={() => setShowUserMenu(!showUserMenu)}
-            className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded-md transition-colors"
+            className="flex items-center space-x-2 p-2 hover:bg-gray-50 transition-colors"
           >
             {auth.user?.avatar ? (
               <img
                 src={auth.user.avatar}
                 alt={auth.user.username}
-                className="w-8 h-8 rounded-full"
+                className="w-8 h-8"
               />
             ) : (
-              <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-gray-200 flex items-center justify-center">
                 <User size={16} />
               </div>
             )}
@@ -71,7 +71,7 @@ export const Header: React.FC = () => {
           
           {/* 下拉菜单 */}
           {showUserMenu && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+            <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 py-1 z-50">
               <div className="px-4 py-2 border-b border-gray-100">
                 <p className="text-sm font-medium text-gray-900">{auth.user?.username}</p>
                 <p className="text-xs text-gray-500">{auth.user?.email || auth.user?.phone}</p>

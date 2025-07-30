@@ -39,7 +39,7 @@ export const Sidebar: React.FC = () => {
       <div className="p-4 border-b border-gray-200">
         <button
           onClick={handleNewRequest}
-          className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+          className="w-full bg-blue-500 text-white px-4 py-2 hover:bg-blue-600 transition-colors flex items-center justify-center space-x-2"
         >
           <Plus size={16} />
           <span>New Request</span>
@@ -58,7 +58,7 @@ export const Sidebar: React.FC = () => {
             onClick={() => setActivePanel(tab.id as any)}
             className={`flex-1 p-3 text-sm font-medium border-b-2 transition-colors ${
               activePanel === tab.id
-                ? 'border-blue-600 text-blue-600'
+                ? 'border-blue-500 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -87,15 +87,15 @@ export const Sidebar: React.FC = () => {
                 {history.slice(0, 50).map((request) => (
                   <div
                     key={request.id}
-                    className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+                    className="p-3 border border-gray-200 hover:bg-gray-50 cursor-pointer"
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className={`text-xs font-medium px-2 py-1 rounded ${
-                        request.method === 'GET' ? 'bg-green-100 text-green-800' :
-                        request.method === 'POST' ? 'bg-blue-100 text-blue-800' :
-                        request.method === 'PUT' ? 'bg-yellow-100 text-yellow-800' :
-                        request.method === 'DELETE' ? 'bg-red-100 text-red-800' :
-                        'bg-gray-100 text-gray-800'
+                      <span className={`text-xs font-medium px-2 py-1 ${
+                        request.method === 'GET' ? 'bg-green-100 text-green-700' :
+                        request.method === 'POST' ? 'bg-blue-100 text-blue-700' :
+                        request.method === 'PUT' ? 'bg-yellow-100 text-yellow-700' :
+                        request.method === 'DELETE' ? 'bg-red-100 text-red-700' :
+                        'bg-gray-100 text-gray-700'
                       }`}>
                         {request.method}
                       </span>
@@ -132,15 +132,15 @@ export const Sidebar: React.FC = () => {
                 {favorites.map((request) => (
                   <div
                     key={request.id}
-                    className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+                    className="p-3 border border-gray-200 hover:bg-gray-50 cursor-pointer"
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className={`text-xs font-medium px-2 py-1 rounded ${
-                        request.method === 'GET' ? 'bg-green-100 text-green-800' :
-                        request.method === 'POST' ? 'bg-blue-100 text-blue-800' :
-                        request.method === 'PUT' ? 'bg-yellow-100 text-yellow-800' :
-                        request.method === 'DELETE' ? 'bg-red-100 text-red-800' :
-                        'bg-gray-100 text-gray-800'
+                      <span className={`text-xs font-medium px-2 py-1 ${
+                        request.method === 'GET' ? 'bg-green-100 text-green-700' :
+                        request.method === 'POST' ? 'bg-blue-100 text-blue-700' :
+                        request.method === 'PUT' ? 'bg-yellow-100 text-yellow-700' :
+                        request.method === 'DELETE' ? 'bg-red-100 text-red-700' :
+                        'bg-gray-100 text-gray-700'
                       }`}>
                         {request.method}
                       </span>

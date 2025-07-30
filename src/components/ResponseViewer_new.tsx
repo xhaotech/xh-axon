@@ -146,12 +146,12 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({ response }) => {
       <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 bg-gray-50 flex-shrink-0">
         <div className="flex items-center space-x-3">
           {/* Status Badge */}
-          <div className={`flex items-center space-x-1 px-2 py-1 text-xs font-medium ${
+          <div className={`flex items-center space-x-1 px-2 py-1 rounded text-xs font-medium ${
             response.status >= 200 && response.status < 300 
-              ? 'bg-green-100 text-green-700' 
+              ? 'bg-green-100 text-green-800' 
               : response.status >= 400 
-                ? 'bg-red-100 text-red-700' 
-                : 'bg-yellow-100 text-yellow-700'
+                ? 'bg-red-100 text-red-800' 
+                : 'bg-yellow-100 text-yellow-800'
           }`}>
             <span>{response.status}</span>
             <span>{response.statusText}</span>
@@ -183,14 +183,14 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({ response }) => {
               placeholder="Search..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-7 pr-2 py-1 text-xs border border-gray-300 focus:outline-none focus:border-blue-500 w-24 focus:w-32 transition-all"
+              className="pl-7 pr-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 w-24 focus:w-32 transition-all"
             />
           </div>
           
           {/* Action Buttons */}
           <button
             onClick={() => handleCopy(processedData.content)}
-            className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+            className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
             title="Copy Response"
           >
             {copied === 'response' ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
@@ -198,7 +198,7 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({ response }) => {
           
           <button
             onClick={handleDownload}
-            className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+            className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
             title="Download Response"
           >
             <Download size={14} />
@@ -206,7 +206,7 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({ response }) => {
           
           <button
             onClick={() => setIsFullscreen(!isFullscreen)}
-            className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+            className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
             title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
           >
             {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
@@ -229,7 +229,7 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({ response }) => {
               onClick={() => setViewMode(mode.id as ViewMode)}
               className={`flex items-center space-x-1 px-3 py-2 text-xs font-medium border-b-2 transition-colors ${
                 viewMode === mode.id
-                  ? 'border-blue-500 text-blue-600 bg-blue-50'
+                  ? 'border-blue-600 text-blue-600 bg-blue-50'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
               }`}
             >
