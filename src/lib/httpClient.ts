@@ -51,8 +51,9 @@ class HttpClient {
         // 如果是 401 错误，清除本地存储的 token
         if (error.response?.status === 401) {
           localStorage.removeItem('auth_token');
-          localStorage.removeItem('user');
-          // 这里可以触发登出事件或重定向到登录页
+          localStorage.removeItem('auth_user');
+          // 触发页面刷新，让 App 组件重新检查认证状态
+          window.location.reload();
         }
 
         return Promise.reject(apiError);
@@ -152,7 +153,7 @@ class HttpClient {
   // 清除认证 token
   clearAuthToken() {
     localStorage.removeItem('auth_token');
-    localStorage.removeItem('user');
+    localStorage.removeItem('auth_user');
   }
 
   // 检查健康状态
@@ -189,25 +190,75 @@ class HttpClient {
         method: config.method.toUpperCase(),
         headers: config.headers || {},
         body: config.body,
+        auth: config.auth, // 传递认证对象给后端
         timeout: 30000
       };
-
-      // 处理Basic Auth
-      if (config.auth?.type === 'basic' && config.auth.username && config.auth.password) {
-        const credentials = btoa(`${config.auth.username}:${config.auth.password}`);
-        requestData.headers['Authorization'] = `Basic ${credentials}`;
-      }
-      
-      // 处理Bearer Token
-      if (config.auth?.type === 'bearer' && config.auth.token) {
-        requestData.headers['Authorization'] = `Bearer ${config.auth.token}`;
-      }
 
       const response = await this.post('/api/proxy', requestData);
       console.log('Proxy response:', response);
       return response;
     } catch (error) {
       console.error('Proxy request failed:', error);
+      throw error;
+    }
+  }
+
+  // 保存请求
+  async saveRequest(request: {
+    name: string;
+    url: string;
+    method: string;
+    params?: Record<string, string>;
+    headers?: Record<string, string>;
+    body?: string;
+    auth?: any;
+  }): Promise<ApiResponse> {
+    try {
+      const response = await this.post('/api/requests/save', request);
+      return response;
+    } catch (error) {
+      console.error('Save request failed:', error);
+      throw error;
+    }
+  }
+
+  // 添加到收藏
+  async addToFavorites(request: {
+    name: string;
+    url: string;
+    method: string;
+    params?: Record<string, string>;
+    headers?: Record<string, string>;
+    body?: string;
+    auth?: any;
+  }): Promise<ApiResponse> {
+    try {
+      const response = await this.post('/api/requests/favorite', request);
+      return response;
+    } catch (error) {
+      console.error('Add to favorites failed:', error);
+      throw error;
+    }
+  }
+
+  // 获取保存的请求
+  async getSavedRequests(): Promise<ApiResponse> {
+    try {
+      const response = await this.get('/api/requests/saved');
+      return response;
+    } catch (error) {
+      console.error('Get saved requests failed:', error);
+      throw error;
+    }
+  }
+
+  // 获取收藏的请求
+  async getFavoriteRequests(): Promise<ApiResponse> {
+    try {
+      const response = await this.get('/api/requests/favorites');
+      return response;
+    } catch (error) {
+      console.error('Get favorite requests failed:', error);
       throw error;
     }
   }

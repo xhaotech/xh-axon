@@ -11,8 +11,13 @@ export const RequestTabs: React.FC = () => {
       name: 'New Request',
       url: '',
       method: 'GET' as const,
+      params: {},
       headers: {},
-      auth: { type: 'none' as const },
+      auth: { 
+        type: 'basic' as const,
+        username: 'wecise.admin',
+        password: 'admin'
+      },
       isSaved: false,
       isModified: false
     };

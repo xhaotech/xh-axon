@@ -4,7 +4,26 @@ import { RequestBuilder } from './RequestBuilder';
 import { useAppStore } from '../store/useAppStore';
 
 export const MainPanel: React.FC = () => {
-  const { tabs, activeTab } = useAppStore();
+  const { tabs, activeTab, addTab } = useAppStore();
+
+  const handleNewRequest = () => {
+    const newTab = {
+      id: Date.now().toString(),
+      name: 'New Request',
+      url: '',
+      method: 'GET' as const,
+      params: {},
+      headers: {},
+      auth: { 
+        type: 'basic' as const,
+        username: 'wecise.admin',
+        password: 'admin'
+      },
+      isSaved: false,
+      isModified: false
+    };
+    addTab(newTab);
+  };
 
   return (
     <div className="flex flex-col h-full bg-gray-50">
@@ -25,7 +44,10 @@ export const MainPanel: React.FC = () => {
               <p className="text-gray-600 mb-4">
                 Create a new request to get started testing your APIs
               </p>
-              <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+              <button 
+                onClick={handleNewRequest}
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
                 New Request
               </button>
             </div>

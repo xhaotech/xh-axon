@@ -8,6 +8,10 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3100;
 
+// 内存存储（生产环境应该使用数据库）
+let savedRequests = [];
+let favoriteRequests = [];
+
 // 中间件
 app.use(cors({
   origin: [
@@ -33,8 +37,157 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Test endpoint with rich JSON response
 app.get('/api/test', (req, res) => {
-  res.json({ message: 'Backend is working!' });
+  console.log('GET /api/test - Test endpoint hit');
+  res.json({
+    message: "Backend is working!",
+    timestamp: new Date().toISOString(),
+    version: "1.0.0",
+    features: [
+      "Basic Auth Support",
+      "Request Proxy",
+      "Save Requests",
+      "Favorites",
+      "History",
+      "Monaco Editor Response Viewer"
+    ],
+    sampleData: {
+      users: [
+        { id: 1, name: "Alice", email: "alice@example.com", active: true },
+        { id: 2, name: "Bob", email: "bob@example.com", active: false },
+        { id: 3, name: "Charlie", email: "charlie@example.com", active: true }
+      ],
+      config: {
+        debugMode: false,
+        apiVersion: "v1",
+        rateLimit: 1000,
+        features: {
+          authentication: true,
+          caching: true,
+          compression: true
+        }
+      }
+    }
+  });
+});
+
+// 测试 Basic Auth 的端点
+app.all('/test-auth', (req, res) => {
+  const auth = req.headers.authorization;
+  
+  if (!auth || !auth.startsWith('Basic ')) {
+    return res.status(401).json({
+      error: 'Unauthorized',
+      message: 'Basic Authentication required'
+    });
+  }
+  
+  try {
+    const credentials = Buffer.from(auth.slice(6), 'base64').toString();
+    const [username, password] = credentials.split(':');
+    
+    if (username === 'wecise.admin' && password === 'admin') {
+      res.json({
+        message: 'Authentication successful',
+        user: username,
+        timestamp: new Date().toISOString(),
+        method: req.method,
+        headers: req.headers
+      });
+    } else {
+      res.status(401).json({
+        error: 'Invalid credentials',
+        message: 'Username or password is incorrect',
+        received: { username }
+      });
+    }
+  } catch (error) {
+    res.status(400).json({
+      error: 'Invalid authorization header',
+      message: 'Could not decode credentials'
+    });
+  }
+});
+
+// 保存请求端点
+app.post('/api/requests/save', (req, res) => {
+  const { name, url, method, params, headers, body, auth } = req.body;
+  
+  if (!url) {
+    return res.status(400).json({ error: 'URL is required' });
+  }
+  
+  const savedRequest = {
+    id: Date.now().toString(),
+    name: name || 'Untitled Request',
+    url,
+    method: method || 'GET',
+    params: params || {},
+    headers: headers || {},
+    body,
+    auth,
+    timestamp: new Date().toISOString()
+  };
+  
+  // 保存到内存存储
+  savedRequests.push(savedRequest);
+  console.log('Request saved:', savedRequest.name, '- Total saved:', savedRequests.length);
+  
+  res.json({
+    success: true,
+    message: 'Request saved successfully',
+    request: savedRequest
+  });
+});
+
+// 收藏请求端点
+app.post('/api/requests/favorite', (req, res) => {
+  const { name, url, method, params, headers, body, auth } = req.body;
+  
+  if (!url) {
+    return res.status(400).json({ error: 'URL is required' });
+  }
+  
+  const favoriteRequest = {
+    id: Date.now().toString(),
+    name: name || 'Untitled Request',
+    url,
+    method: method || 'GET',
+    params: params || {},
+    headers: headers || {},
+    body,
+    auth,
+    timestamp: new Date().toISOString()
+  };
+  
+  // 保存到内存存储
+  favoriteRequests.push(favoriteRequest);
+  console.log('Request favorited:', favoriteRequest.name, '- Total favorites:', favoriteRequests.length);
+  
+  res.json({
+    success: true,
+    message: 'Request added to favorites',
+    favorite: favoriteRequest
+  });
+});
+
+// 获取保存的请求列表
+app.get('/api/requests/saved', (req, res) => {
+  console.log('Getting saved requests, count:', savedRequests.length);
+  res.json({
+    success: true,
+    requests: savedRequests.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+  });
+});
+
+// 获取收藏的请求列表
+app.get('/api/requests/favorites', (req, res) => {
+  console.log('Getting favorite requests, count:', favoriteRequests.length);
+  res.json({
+    success: true,
+    favorites: favoriteRequests.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+  });
 });
 
 // 代理请求端点

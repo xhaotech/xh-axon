@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { Send, Save, Star } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { httpClient } from '../lib/httpClient';
+import { ResponseViewer } from './ResponseViewer';
 
 interface RequestBuilderProps {
   tabId: string;
 }
 
 export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
-  const { tabs, updateTab, addToHistory } = useAppStore();
+  const { tabs, updateTab, addToHistory, saveTab, addTabToFavorites } = useAppStore();
   const tab = tabs.find(t => t.id === tabId);
   
   const [activeSection, setActiveSection] = useState<'params' | 'headers' | 'body' | 'auth'>('params');
@@ -25,6 +26,60 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
     updateTab(tabId, { method });
   };
 
+  const handleSaveRequest = async () => {
+    if (!tab.url.trim()) {
+      alert('请输入请求URL才能保存');
+      return;
+    }
+    
+    try {
+      const response = await httpClient.saveRequest({
+        name: tab.name || 'Untitled Request',
+        url: tab.url,
+        method: tab.method,
+        params: tab.params,
+        headers: tab.headers,
+        body: tab.body,
+        auth: tab.auth
+      });
+      
+      if (response.success) {
+        saveTab(tabId);
+        alert('请求已保存到后端！');
+      }
+    } catch (error) {
+      console.error('Save failed:', error);
+      alert('保存失败，请重试');
+    }
+  };
+
+  const handleAddToFavorites = async () => {
+    if (!tab.url.trim()) {
+      alert('请输入请求URL才能收藏');
+      return;
+    }
+    
+    try {
+      const response = await httpClient.addToFavorites({
+        name: tab.name || 'Untitled Request',
+        url: tab.url,
+        method: tab.method,
+        params: tab.params,
+        headers: tab.headers,
+        body: tab.body,
+        auth: tab.auth
+      });
+      
+      if (response.success) {
+        addTabToFavorites(tabId);
+        alert('已添加到收藏！');
+      }
+    } catch (error) {
+      console.error('Add to favorites failed:', error);
+      alert('添加收藏失败，请重试');
+    }
+  };
+
   const handleSendRequest = async () => {
     if (!tab.url.trim()) {
       alert('请输入请求URL');
@@ -36,6 +91,21 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
     
     try {
       console.log('Sending request...', tab);
+      
+      // 构建完整的URL（包含查询参数）
+      let fullUrl = tab.url;
+      if (tab.params && Object.keys(tab.params).length > 0) {
+        const searchParams = new URLSearchParams();
+        Object.entries(tab.params).forEach(([key, value]) => {
+          if (key && value) {
+            searchParams.append(key, value);
+          }
+        });
+        const paramString = searchParams.toString();
+        if (paramString) {
+          fullUrl += (tab.url.includes('?') ? '&' : '?') + paramString;
+        }
+      }
       
       // 检查认证设置
       let auth: any = undefined;
@@ -56,7 +126,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
       
       // 发送代理请求
       const proxyResponse = await httpClient.proxyRequest({
-        url: tab.url,
+        url: fullUrl,
         method: tab.method,
         headers: tab.headers,
         body: tab.body,
@@ -77,7 +147,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
       // 保存到历史记录
       const historyItem = {
         id: Date.now().toString(),
-        url: tab.url,
+        url: fullUrl,
         method: tab.method,
         headers: tab.headers,
         body: tab.body,
@@ -126,8 +196,19 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
 
   return (
     <div className="flex flex-col h-full bg-white">
+      {/* Request Name */}
+      <div className="p-4 border-b border-gray-200 bg-gray-50 flex-shrink-0">
+        <input
+          type="text"
+          value={tab.name}
+          onChange={(e) => updateTab(tabId, { name: e.target.value })}
+          className="text-lg font-medium bg-transparent border-none focus:outline-none focus:ring-0 w-full"
+          placeholder="Request Name"
+        />
+      </div>
+      
       {/* Request URL Bar */}
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-4 border-b border-gray-200 flex-shrink-0">
         <div className="flex space-x-2">
           <select
             value={tab.method}
@@ -159,18 +240,28 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
             <span>Send</span>
           </button>
           
-          <button className="p-2 text-gray-400 hover:text-gray-600 border border-gray-300 rounded-lg">
+          <button 
+            onClick={handleSaveRequest}
+            className={`p-2 border border-gray-300 rounded-lg transition-colors ${
+              tab.isSaved ? 'text-green-600 bg-green-50' : 'text-gray-400 hover:text-gray-600'
+            }`}
+            title="Save Request"
+          >
             <Save size={16} />
           </button>
           
-          <button className="p-2 text-gray-400 hover:text-gray-600 border border-gray-300 rounded-lg">
+          <button 
+            onClick={handleAddToFavorites}
+            className="p-2 text-gray-400 hover:text-yellow-500 border border-gray-300 rounded-lg transition-colors"
+            title="Add to Favorites"
+          >
             <Star size={16} />
           </button>
         </div>
       </div>
 
       {/* Request Configuration Tabs */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-gray-200 flex-shrink-0">
         <div className="flex">
           {[
             { id: 'params', label: 'Params' },
@@ -194,30 +285,104 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
       </div>
 
       {/* Request Configuration Content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto min-h-0">
         <div className="p-4">
           {activeSection === 'params' && (
             <div>
               <h3 className="text-sm font-medium text-gray-900 mb-3">Query Parameters</h3>
               <div className="space-y-2">
+                {Object.entries(tab.params || {}).map(([key, value], index) => (
+                  <div key={index} className="flex space-x-2">
+                    <input
+                      type="text"
+                      placeholder="Key"
+                      value={key}
+                      onChange={(e) => {
+                        const newParams = { ...tab.params };
+                        delete newParams[key];
+                        newParams[e.target.value] = value;
+                        updateTab(tabId, { params: newParams });
+                      }}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Value"
+                      value={value}
+                      onChange={(e) => {
+                        updateTab(tabId, { 
+                          params: { ...tab.params, [key]: e.target.value } 
+                        });
+                      }}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button 
+                      onClick={() => {
+                        const newParams = { ...tab.params };
+                        delete newParams[key];
+                        updateTab(tabId, { params: newParams });
+                      }}
+                      className="px-3 py-2 text-gray-400 hover:text-gray-600"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
                 <div className="flex space-x-2">
                   <input
                     type="text"
                     placeholder="Key"
                     className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        const input = e.target as HTMLInputElement;
+                        const valueInput = input.nextElementSibling as HTMLInputElement;
+                        if (input.value && valueInput.value) {
+                          updateTab(tabId, { 
+                            params: { ...tab.params, [input.value]: valueInput.value } 
+                          });
+                          input.value = '';
+                          valueInput.value = '';
+                        }
+                      }
+                    }}
                   />
                   <input
                     type="text"
                     placeholder="Value"
                     className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        const input = e.target as HTMLInputElement;
+                        const keyInput = input.previousElementSibling as HTMLInputElement;
+                        if (keyInput.value && input.value) {
+                          updateTab(tabId, { 
+                            params: { ...tab.params, [keyInput.value]: input.value } 
+                          });
+                          keyInput.value = '';
+                          input.value = '';
+                        }
+                      }
+                    }}
                   />
-                  <button className="px-3 py-2 text-gray-400 hover:text-gray-600">
-                    ×
+                  <button 
+                    onClick={(e) => {
+                      const container = e.currentTarget.parentElement;
+                      const keyInput = container?.querySelector('input:first-child') as HTMLInputElement;
+                      const valueInput = container?.querySelector('input:last-child') as HTMLInputElement;
+                      if (keyInput?.value && valueInput?.value) {
+                        updateTab(tabId, { 
+                          params: { ...tab.params, [keyInput.value]: valueInput.value } 
+                        });
+                        keyInput.value = '';
+                        valueInput.value = '';
+                      }
+                    }}
+                    className="px-3 py-2 text-blue-600 hover:text-blue-700 border border-blue-300 rounded"
+                  >
+                    +
                   </button>
                 </div>
-                <button className="text-blue-600 text-sm hover:text-blue-700">
-                  + Add Parameter
-                </button>
               </div>
             </div>
           )}
@@ -226,24 +391,98 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
             <div>
               <h3 className="text-sm font-medium text-gray-900 mb-3">Headers</h3>
               <div className="space-y-2">
+                {Object.entries(tab.headers || {}).map(([key, value], index) => (
+                  <div key={index} className="flex space-x-2">
+                    <input
+                      type="text"
+                      placeholder="Header"
+                      value={key}
+                      onChange={(e) => {
+                        const newHeaders = { ...tab.headers };
+                        delete newHeaders[key];
+                        newHeaders[e.target.value] = value;
+                        updateTab(tabId, { headers: newHeaders });
+                      }}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Value"
+                      value={value}
+                      onChange={(e) => {
+                        updateTab(tabId, { 
+                          headers: { ...tab.headers, [key]: e.target.value } 
+                        });
+                      }}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button 
+                      onClick={() => {
+                        const newHeaders = { ...tab.headers };
+                        delete newHeaders[key];
+                        updateTab(tabId, { headers: newHeaders });
+                      }}
+                      className="px-3 py-2 text-gray-400 hover:text-gray-600"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
                 <div className="flex space-x-2">
                   <input
                     type="text"
                     placeholder="Header"
                     className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        const input = e.target as HTMLInputElement;
+                        const valueInput = input.nextElementSibling as HTMLInputElement;
+                        if (input.value && valueInput.value) {
+                          updateTab(tabId, { 
+                            headers: { ...tab.headers, [input.value]: valueInput.value } 
+                          });
+                          input.value = '';
+                          valueInput.value = '';
+                        }
+                      }
+                    }}
                   />
                   <input
                     type="text"
                     placeholder="Value"
                     className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        const input = e.target as HTMLInputElement;
+                        const headerInput = input.previousElementSibling as HTMLInputElement;
+                        if (headerInput.value && input.value) {
+                          updateTab(tabId, { 
+                            headers: { ...tab.headers, [headerInput.value]: input.value } 
+                          });
+                          headerInput.value = '';
+                          input.value = '';
+                        }
+                      }
+                    }}
                   />
-                  <button className="px-3 py-2 text-gray-400 hover:text-gray-600">
-                    ×
+                  <button 
+                    onClick={(e) => {
+                      const container = e.currentTarget.parentElement;
+                      const headerInput = container?.querySelector('input:first-child') as HTMLInputElement;
+                      const valueInput = container?.querySelector('input:last-child') as HTMLInputElement;
+                      if (headerInput?.value && valueInput?.value) {
+                        updateTab(tabId, { 
+                          headers: { ...tab.headers, [headerInput.value]: valueInput.value } 
+                        });
+                        headerInput.value = '';
+                        valueInput.value = '';
+                      }
+                    }}
+                    className="px-3 py-2 text-blue-600 hover:text-blue-700 border border-blue-300 rounded"
+                  >
+                    +
                   </button>
                 </div>
-                <button className="text-blue-600 text-sm hover:text-blue-700">
-                  + Add Header
-                </button>
               </div>
             </div>
           )}
@@ -268,8 +507,9 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                 </div>
                 <textarea
                   placeholder="Enter request body"
+                  value={tab.body || ''}
+                  onChange={(e) => updateTab(tabId, { body: e.target.value })}
                   className="w-full h-64 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-                  defaultValue='{\n  \n}'
                 />
               </div>
             </div>
@@ -279,32 +519,90 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
             <div>
               <h3 className="text-sm font-medium text-gray-900 mb-3">Authorization</h3>
               <div className="space-y-4">
-                <select className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select 
+                  value={tab.auth?.type || 'none'}
+                  onChange={(e) => updateTab(tabId, { 
+                    auth: { 
+                      ...tab.auth, 
+                      type: e.target.value as any 
+                    } 
+                  })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
                   <option value="none">No Auth</option>
                   <option value="bearer">Bearer Token</option>
                   <option value="basic">Basic Auth</option>
                   <option value="oauth">OAuth 2.0</option>
                 </select>
                 
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    placeholder="Token"
-                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
+                {tab.auth?.type === 'bearer' && (
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      placeholder="Token"
+                      value={tab.auth?.token || ''}
+                      onChange={(e) => updateTab(tabId, { 
+                        auth: { 
+                          ...tab.auth, 
+                          token: e.target.value 
+                        } 
+                      })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                )}
+                
+                {tab.auth?.type === 'basic' && (
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      placeholder="Username"
+                      value={tab.auth?.username || ''}
+                      onChange={(e) => updateTab(tabId, { 
+                        auth: { 
+                          ...tab.auth, 
+                          username: e.target.value 
+                        } 
+                      })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input
+                      type="password"
+                      placeholder="Password"
+                      value={tab.auth?.password || ''}
+                      onChange={(e) => updateTab(tabId, { 
+                        auth: { 
+                          ...tab.auth, 
+                          password: e.target.value 
+                        } 
+                      })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Response Section Placeholder */}
-      <div className="border-t border-gray-200 bg-gray-50 p-4">
-        <h3 className="text-sm font-medium text-gray-900 mb-2">Response</h3>
-        <div className="bg-white border border-gray-200 rounded-lg p-4 text-center text-gray-500">
-          Send a request to see the response
-        </div>
+      {/* Response Section */}
+      <div className="border-t border-gray-200 bg-gray-50 p-4 min-h-0 flex-1 flex flex-col">
+        <h3 className="text-sm font-medium text-gray-900 mb-2 flex-shrink-0">Response</h3>
+        {isLoading ? (
+          <div className="bg-white border border-gray-200 rounded-lg p-4 text-center text-blue-600">
+            <div className="animate-spin w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-2"></div>
+            Sending request...
+          </div>
+        ) : response ? (
+          <div className="bg-white border border-gray-200 rounded-lg flex-1 overflow-hidden">
+            <ResponseViewer response={response} />
+          </div>
+        ) : (
+          <div className="bg-white border border-gray-200 rounded-lg p-4 text-center text-gray-500">
+            Send a request to see the response
+          </div>
+        )}
       </div>
     </div>
   );
