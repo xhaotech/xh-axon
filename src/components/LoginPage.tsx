@@ -3,6 +3,7 @@ import { Eye, EyeOff, Mail, Phone, Lock, User, ArrowRight } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { validateUserLogin, validatePhoneLogin, demoUsers } from '../lib/auth';
 import { httpClient } from '../lib/httpClient';
+import toast from 'react-hot-toast';
 
 type LoginMethod = 'username' | 'phone';
 
@@ -36,13 +37,13 @@ export const LoginPage: React.FC = () => {
       console.log('Direct fetch result:', { response, data });
       
       if (response.ok) {
-        alert(`后端连接成功！\n状态: ${data.status}\n时间: ${data.timestamp}`);
+        toast.success(`后端连接成功！\n状态: ${data.status}\n时间: ${data.timestamp}`);
       } else {
-        alert('后端连接失败！状态码: ' + response.status);
+        toast.error('后端连接失败！状态码: ' + response.status);
       }
     } catch (error) {
       console.error('Backend test error:', error);
-      alert('后端连接测试失败！错误: ' + (error as Error).message);
+      toast.error('后端连接测试失败！错误: ' + (error as Error).message);
     }
     
     // 同时测试 httpClient
@@ -57,7 +58,7 @@ export const LoginPage: React.FC = () => {
   // 发送验证码
   const handleSendVerificationCode = async () => {
     if (!phoneForm.phone) {
-      alert('请输入手机号');
+      toast.error('请输入手机号');
       return;
     }
     
@@ -78,9 +79,9 @@ export const LoginPage: React.FC = () => {
         });
       }, 1000);
       
-      alert('验证码已发送');
+      toast.success('验证码已发送');
     } catch (error) {
-      alert('发送验证码失败，请重试');
+      toast.error('发送验证码失败，请重试');
     } finally {
       setIsLoading(false);
     }
@@ -90,7 +91,7 @@ export const LoginPage: React.FC = () => {
   const handleUsernameLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!usernameForm.username || !usernameForm.password) {
-      alert('请输入用户名和密码');
+      toast.error('请输入用户名和密码');
       return;
     }
     
@@ -112,10 +113,10 @@ export const LoginPage: React.FC = () => {
         
         login(user, 'jwt-token-' + Date.now());
       } else {
-        alert('用户名或密码错误');
+        toast.error('用户名或密码错误');
       }
     } catch (error) {
-      alert('登录失败，请重试');
+      toast.error('登录失败，请重试');
     } finally {
       setIsLoading(false);
     }
@@ -125,7 +126,7 @@ export const LoginPage: React.FC = () => {
   const handlePhoneLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!phoneForm.phone || !phoneForm.verificationCode) {
-      alert('请输入手机号和验证码');
+      toast.error('请输入手机号和验证码');
       return;
     }
     
@@ -147,10 +148,10 @@ export const LoginPage: React.FC = () => {
         
         login(user, 'jwt-token-' + Date.now());
       } else {
-        alert('手机号或验证码错误');
+        toast.error('手机号或验证码错误');
       }
     } catch (error) {
-      alert('登录失败，请重试');
+      toast.error('登录失败，请重试');
     } finally {
       setIsLoading(false);
     }

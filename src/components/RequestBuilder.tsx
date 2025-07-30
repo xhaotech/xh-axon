@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Save, Star, GripHorizontal, Copy, Download, MoreHorizontal, Search, Filter, Settings } from 'lucide-react';
 import Editor from '@monaco-editor/react';
+import toast from 'react-hot-toast';
 import { useAppStore } from '../store/useAppStore';
 import { httpClient } from '../lib/httpClient';
 import type { HttpMethod } from '../store/useAppStore';
@@ -33,7 +34,7 @@ const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
 
   const handleSendRequest = async () => {
     if (!tab.url.trim()) {
-      alert('请输入请求URL');
+      toast.error('请输入请求URL');
       return;
     }
 
@@ -111,7 +112,7 @@ const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
 
   const handleSaveRequest = async () => {
     if (!tab.url.trim()) {
-      alert('请输入请求URL才能保存');
+      toast.error('请输入请求URL才能保存');
       return;
     }
     
@@ -128,17 +129,17 @@ const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
       
       if (response.success) {
         saveTab(tabId);
-        alert('请求已保存到后端！');
+        toast.success('请求已保存到后端！');
       }
     } catch (error) {
       console.error('Save failed:', error);
-      alert('保存失败，请重试');
+      toast.error('保存失败，请重试');
     }
   };
 
   const handleAddToFavorites = async () => {
     if (!tab.url.trim()) {
-      alert('请输入请求URL才能收藏');
+      toast.error('请输入请求URL才能收藏');
       return;
     }
     
@@ -155,11 +156,11 @@ const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
       
       if (response.success) {
         addTabToFavorites(tabId);
-        alert('已添加到收藏！');
+        toast.success('已添加到收藏！');
       }
     } catch (error) {
       console.error('Add to favorites failed:', error);
-      alert('添加收藏失败，请重试');
+      toast.error('添加收藏失败，请重试');
     }
   };
 
@@ -167,7 +168,7 @@ const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
   const copyResponse = () => {
     if (response) {
       navigator.clipboard.writeText(JSON.stringify(response.data, null, 2));
-      alert('Response copied to clipboard!');
+      toast.success('Response copied to clipboard!');
     }
   };
 
