@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Toaster } from 'react-hot-toast';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { MainPanel } from './components/MainPanel';
@@ -63,6 +64,29 @@ function App() {
         </div>
       </div>
       <StatusBar />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+            fontSize: '14px',
+          },
+          success: {
+            style: {
+              background: '#059669',
+              color: '#fff',
+            },
+          },
+          error: {
+            style: {
+              background: '#dc2626',
+              color: '#fff',
+            },
+          },
+        }}
+      />
     </div>
   );
 }

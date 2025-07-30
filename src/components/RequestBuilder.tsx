@@ -16,7 +16,9 @@ const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
   const [activeSection, setActiveSection] = useState<'params' | 'headers' | 'body' | 'auth'>('params');
   const [upperHeight, setUpperHeight] = useState(50);
   const [response, setResponse] = useState<any>(null);
-  const [responseView, setResponseView] = useState<'body' | 'cookies' | 'headers' | 'test-results' | 'formatted' | 'raw' | 'preview'>('body');
+  const [responseView, setResponseView] = useState<'body' | 'cookies' | 'headers' | 'test-results' | 'json' | 'xml' | 'html' | 'javascript' | 'raw' | 'hex' | 'base64' | 'formatted' | 'preview'>('body');
+  const [paramsEditMode, setParamsEditMode] = useState<'key-value' | 'bulk'>('key-value');
+  const [headersEditMode, setHeadersEditMode] = useState<'key-value' | 'bulk'>('key-value');
   const containerRef = useRef<HTMLDivElement>(null);
 
   if (!tab) return null;
@@ -210,6 +212,74 @@ const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
     console.log('Filter response');
   };
 
+  // Response formatting functions
+  const formatResponseContent = (data: any, format: string) => {
+    if (!data) return '';
+    
+    const stringData = typeof data === 'string' ? data : JSON.stringify(data);
+    
+    switch (format) {
+      case 'json':
+        try {
+          const parsed = typeof data === 'string' ? JSON.parse(data) : data;
+          return JSON.stringify(parsed, null, 2);
+        } catch {
+          return stringData;
+        }
+      
+      case 'xml':
+        // 基本的XML格式化
+        if (stringData.includes('<') && stringData.includes('>')) {
+          return stringData.replace(/></g, '>\n<').replace(/^\s+|\s+$/g, '');
+        }
+        return stringData;
+      
+      case 'html':
+        // HTML格式化
+        if (stringData.includes('<html') || stringData.includes('<!DOCTYPE')) {
+          return stringData;
+        }
+        return stringData;
+      
+      case 'javascript':
+        // JavaScript代码格式化
+        return stringData;
+      
+      case 'raw':
+        return stringData;
+      
+      case 'hex':
+        // 转换为十六进制
+        return Array.from(new TextEncoder().encode(stringData))
+          .map(byte => byte.toString(16).padStart(2, '0'))
+          .join(' ');
+      
+      case 'base64':
+        // 转换为Base64
+        try {
+          return btoa(stringData);
+        } catch {
+          return stringData;
+        }
+      
+      default:
+        return stringData;
+    }
+  };
+
+  const getLanguageFromFormat = (format: string) => {
+    switch (format) {
+      case 'json': return 'json';
+      case 'xml': return 'xml';
+      case 'html': return 'html';
+      case 'javascript': return 'javascript';
+      case 'raw': return 'text';
+      case 'hex': return 'text';
+      case 'base64': return 'text';
+      default: return 'text';
+    }
+  };
+
   // Convert headers object to array for display
   const headersArray = Object.entries(tab.headers || {}).map(([key, value]) => ({ key, value }));
 
@@ -221,6 +291,54 @@ const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
       return acc;
     }, {} as Record<string, string>);
     updateTab(tabId, { headers: headersObj });
+  };
+
+  // Convert params to bulk text format
+  const paramsToBulkText = () => {
+    return Object.entries(tab.params || {})
+      .map(([key, value]) => `${key}=${value}`)
+      .join('\n');
+  };
+
+  // Convert bulk text to params object
+  const bulkTextToParams = (text: string) => {
+    const params: Record<string, string> = {};
+    text.split('\n').forEach(line => {
+      const trimmedLine = line.trim();
+      if (trimmedLine) {
+        const [key, ...valueParts] = trimmedLine.split('=');
+        if (key.trim()) {
+          params[key.trim()] = valueParts.join('=') || '';
+        }
+      }
+    });
+    return params;
+  };
+
+  // Convert headers to bulk text format
+  const headersToBulkText = () => {
+    return Object.entries(tab.headers || {})
+      .map(([key, value]) => `${key}: ${value}`)
+      .join('\n');
+  };
+
+  // Convert bulk text to headers object
+  const bulkTextToHeaders = (text: string) => {
+    const headers: Record<string, string> = {};
+    text.split('\n').forEach(line => {
+      const trimmedLine = line.trim();
+      if (trimmedLine) {
+        const colonIndex = trimmedLine.indexOf(':');
+        if (colonIndex > 0) {
+          const key = trimmedLine.substring(0, colonIndex).trim();
+          const value = trimmedLine.substring(colonIndex + 1).trim();
+          if (key) {
+            headers[key] = value;
+          }
+        }
+      }
+    });
+    return headers;
   };
 
   return (
@@ -305,166 +423,324 @@ const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
           {/* Params Section */}
           {activeSection === 'params' && (
             <div className="p-2 h-full overflow-auto">
-              <div className="space-y-1">
-                <div className="grid grid-cols-3 gap-1 text-xs font-medium text-gray-600 mb-1">
-                  <div>KEY</div>
-                  <div>VALUE</div>
-                  <div></div>
+              {/* Edit mode toggle */}
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs font-medium text-gray-600">Query Params</span>
                 </div>
-                {(Object.entries(tab.params || {})).map(([key, value], index) => (
-                  <div key={index} className="grid grid-cols-3 gap-1 items-center group">
+                <div className="flex items-center space-x-1">
+                  <button
+                    onClick={() => setParamsEditMode(paramsEditMode === 'key-value' ? 'bulk' : 'key-value')}
+                    className="px-2 py-1 text-xs bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors"
+                  >
+                    {paramsEditMode === 'key-value' ? 'Bulk Edit' : 'Key-Value Edit'}
+                  </button>
+                </div>
+              </div>
+
+              {paramsEditMode === 'key-value' ? (
+                <div className="space-y-1">
+                  <div className="grid grid-cols-3 gap-1 text-xs font-medium text-gray-600 mb-1">
+                    <div>KEY</div>
+                    <div>VALUE</div>
+                    <div></div>
+                  </div>
+                  {(Object.entries(tab.params || {})).map(([key, value], index) => (
+                    <div key={index} className="grid grid-cols-3 gap-1 items-center group">
+                      <input
+                        type="text"
+                        value={key}
+                        onChange={(e) => {
+                          const newParams = { ...tab.params };
+                          delete newParams[key];
+                          if (e.target.value) {
+                            newParams[e.target.value] = value;
+                          }
+                          updateTab(tabId, { params: newParams });
+                        }}
+                        className="px-1 py-1 border border-gray-300 text-xs focus:outline-none focus:border-blue-500"
+                        placeholder="Key"
+                      />
+                      <input
+                        type="text"
+                        value={value}
+                        onChange={(e) => {
+                          const newParams = { ...tab.params };
+                          newParams[key] = e.target.value;
+                          updateTab(tabId, { params: newParams });
+                        }}
+                        className="px-1 py-1 border border-gray-300 text-xs focus:outline-none focus:border-blue-500"
+                        placeholder="Value"
+                      />
+                      <button
+                        onClick={() => {
+                          const newParams = { ...tab.params };
+                          delete newParams[key];
+                          updateTab(tabId, { params: newParams });
+                        }}
+                        className="text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity justify-self-center text-xs"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  <div className="grid grid-cols-3 gap-1 items-center">
                     <input
                       type="text"
-                      value={key}
-                      onChange={(e) => {
-                        const newParams = { ...tab.params };
-                        delete newParams[key];
-                        if (e.target.value) {
-                          newParams[e.target.value] = value;
+                      placeholder="New key"
+                      className="px-2 py-1 border border-gray-300 text-xs focus:outline-none focus:border-blue-500"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          const input = e.target as HTMLInputElement;
+                          const valueInput = input.parentElement?.children[1] as HTMLInputElement;
+                          const key = input.value.trim();
+                          const value = valueInput?.value || '';
+                          if (key) {
+                            const newParams = { ...tab.params, [key]: value };
+                            updateTab(tabId, { params: newParams });
+                            input.value = '';
+                            if (valueInput) valueInput.value = '';
+                          }
                         }
-                        updateTab(tabId, { params: newParams });
                       }}
-                      className="px-1 py-1 border border-gray-300 text-xs focus:outline-none focus:border-blue-500"
-                      placeholder="Key"
                     />
                     <input
                       type="text"
-                      value={value}
-                      onChange={(e) => {
-                        const newParams = { ...tab.params };
-                        newParams[key] = e.target.value;
-                        updateTab(tabId, { params: newParams });
+                      placeholder="New value"
+                      className="px-2 py-1 border border-gray-300 text-xs focus:outline-none focus:border-blue-500"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          const valueInput = e.target as HTMLInputElement;
+                          const keyInput = valueInput.parentElement?.children[0] as HTMLInputElement;
+                          const key = keyInput?.value.trim() || '';
+                          const value = valueInput.value;
+                          if (key) {
+                            const newParams = { ...tab.params, [key]: value };
+                            updateTab(tabId, { params: newParams });
+                            keyInput.value = '';
+                            valueInput.value = '';
+                            keyInput.focus();
+                          }
+                        }
                       }}
-                      className="px-1 py-1 border border-gray-300 text-xs focus:outline-none focus:border-blue-500"
-                      placeholder="Value"
                     />
                     <button
                       onClick={() => {
-                        const newParams = { ...tab.params };
-                        delete newParams[key];
-                        updateTab(tabId, { params: newParams });
+                        const container = document.activeElement?.closest('.grid') as HTMLElement;
+                        if (container) {
+                          const keyInput = container.children[0] as HTMLInputElement;
+                          const valueInput = container.children[1] as HTMLInputElement;
+                          const key = keyInput.value.trim();
+                          const value = valueInput.value;
+                          if (key) {
+                            const newParams = { ...tab.params, [key]: value };
+                            updateTab(tabId, { params: newParams });
+                            keyInput.value = '';
+                            valueInput.value = '';
+                            keyInput.focus();
+                          }
+                        }
                       }}
-                      className="text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity justify-self-center text-xs"
+                      className="bg-blue-500 text-white w-6 h-6 text-xs hover:bg-blue-600 transition-colors rounded flex items-center justify-center"
                     >
-                      ×
+                      +
                     </button>
                   </div>
-                ))}
-                <div className="grid grid-cols-3 gap-1 items-center">
-                  <input
-                    type="text"
-                    placeholder="New key"
-                    className="px-2 py-1 border border-gray-300 text-xs focus:outline-none focus:border-blue-500"
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        const input = e.target as HTMLInputElement;
-                        const key = input.value.trim();
-                        if (key) {
-                          const newParams = { ...tab.params, [key]: '' };
-                          updateTab(tabId, { params: newParams });
-                          input.value = '';
-                        }
-                      }
-                    }}
-                  />
-                  <input
-                    type="text"
-                    placeholder="New value"
-                    className="px-2 py-1 border border-gray-300 text-xs focus:outline-none focus:border-blue-500"
-                  />
-                  <div></div>
                 </div>
-              </div>
+              ) : (
+                <div className="h-full flex flex-col">
+                  <div className="text-xs text-gray-600 mb-1">
+                    Bulk edit query parameters (format: key=value, one per line)
+                  </div>
+                  <div className="flex-1 border border-gray-200">
+                    <Editor
+                      height="100%"
+                      defaultLanguage="text"
+                      value={paramsToBulkText()}
+                      onChange={(value) => {
+                        if (value !== undefined) {
+                          const newParams = bulkTextToParams(value);
+                          updateTab(tabId, { params: newParams });
+                        }
+                      }}
+                      theme="vs-light"
+                      options={{
+                        minimap: { enabled: false },
+                        fontSize: 12,
+                        lineNumbers: 'on',
+                        glyphMargin: false,
+                        folding: false,
+                        lineDecorationsWidth: 10,
+                        lineNumbersMinChars: 3,
+                        scrollBeyondLastLine: false,
+                        automaticLayout: true,
+                        wordWrap: 'on',
+                        placeholder: 'key1=value1\nkey2=value2\nkey3=value3'
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           )}          {/* Headers Section */}
           {activeSection === 'headers' && (
             <div className="p-2 h-full overflow-auto">
-              <div className="space-y-1">
-                <div className="grid grid-cols-3 gap-1 text-xs font-medium text-gray-600 mb-1">
-                  <div>KEY</div>
-                  <div>VALUE</div>
-                  <div className="w-4"></div>
+              {/* Edit mode toggle */}
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs font-medium text-gray-600">Headers</span>
                 </div>
-                {headersArray.map((header, index) => (
-                  <div key={index} className="grid grid-cols-3 gap-1 items-center group">
-                    <input
-                      type="text"
-                      value={header.key}
-                      onChange={(e) => {
-                        const newHeaders = [...headersArray];
-                        newHeaders[index] = { ...header, key: e.target.value };
-                        updateHeaders(newHeaders);
-                      }}
-                      placeholder="Key"
-                      className="px-1 py-1 border border-gray-300 text-xs focus:outline-none focus:border-blue-500"
-                    />
-                    <input
-                      type="text"
-                      value={header.value}
-                      onChange={(e) => {
-                        const newHeaders = [...headersArray];
-                        newHeaders[index] = { ...header, value: e.target.value };
-                        updateHeaders(newHeaders);
-                      }}
-                      placeholder="Value"
-                      className="px-1 py-1 border border-gray-300 text-xs focus:outline-none focus:border-blue-500"
-                    />
-                    <button
-                      onClick={() => {
-                        const newHeaders = headersArray.filter((_, i) => i !== index);
-                        updateHeaders(newHeaders);
-                      }}
-                      className="text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity justify-self-center text-xs"
-                    >
-                      ×
-                    </button>
+                <div className="flex items-center space-x-1">
+                  <button
+                    onClick={() => setHeadersEditMode(headersEditMode === 'key-value' ? 'bulk' : 'key-value')}
+                    className="px-2 py-1 text-xs bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors"
+                  >
+                    {headersEditMode === 'key-value' ? 'Bulk Edit' : 'Key-Value Edit'}
+                  </button>
+                </div>
+              </div>
+
+              {headersEditMode === 'key-value' ? (
+                <div className="space-y-1">
+                  <div className="grid grid-cols-3 gap-1 text-xs font-medium text-gray-600 mb-1">
+                    <div>KEY</div>
+                    <div>VALUE</div>
+                    <div className="w-4"></div>
                   </div>
-                ))}
-                <div className="grid grid-cols-3 gap-1 items-center">
-                  <input
-                    type="text"
-                    placeholder="Key"
-                    className="px-2 py-1 border border-gray-300 text-xs focus:outline-none focus:border-blue-500"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Tab' || e.key === 'Enter') {
-                        e.preventDefault();
+                  {headersArray.map((header, index) => (
+                    <div key={index} className="grid grid-cols-3 gap-1 items-center group">
+                      <input
+                        type="text"
+                        value={header.key}
+                        onChange={(e) => {
+                          const newHeaders = [...headersArray];
+                          newHeaders[index] = { ...header, key: e.target.value };
+                          updateHeaders(newHeaders);
+                        }}
+                        placeholder="Key"
+                        className="px-1 py-1 border border-gray-300 text-xs focus:outline-none focus:border-blue-500"
+                      />
+                      <input
+                        type="text"
+                        value={header.value}
+                        onChange={(e) => {
+                          const newHeaders = [...headersArray];
+                          newHeaders[index] = { ...header, value: e.target.value };
+                          updateHeaders(newHeaders);
+                        }}
+                        placeholder="Value"
+                        className="px-1 py-1 border border-gray-300 text-xs focus:outline-none focus:border-blue-500"
+                      />
+                      <button
+                        onClick={() => {
+                          const newHeaders = headersArray.filter((_, i) => i !== index);
+                          updateHeaders(newHeaders);
+                        }}
+                        className="text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity justify-self-center text-xs"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  <div className="grid grid-cols-3 gap-1 items-center">
+                    <input
+                      type="text"
+                      placeholder="Key"
+                      className="px-2 py-1 border border-gray-300 text-xs focus:outline-none focus:border-blue-500"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Tab' || e.key === 'Enter') {
+                          e.preventDefault();
+                          const keyInput = e.target as HTMLInputElement;
+                          const valueInput = keyInput.parentElement?.children[1] as HTMLInputElement;
+                          if (valueInput) valueInput.focus();
+                        }
+                      }}
+                      onBlur={(e) => {
                         const keyInput = e.target as HTMLInputElement;
                         const valueInput = keyInput.parentElement?.children[1] as HTMLInputElement;
-                        if (valueInput) valueInput.focus();
-                      }
-                    }}
-                    onBlur={(e) => {
-                      const keyInput = e.target as HTMLInputElement;
-                      const valueInput = keyInput.parentElement?.children[1] as HTMLInputElement;
-                      if (keyInput.value.trim() && valueInput.value.trim()) {
-                        const newHeaders = [...headersArray, { key: keyInput.value, value: valueInput.value }];
-                        updateHeaders(newHeaders);
-                        keyInput.value = '';
-                        valueInput.value = '';
-                      }
-                    }}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Value"
-                    className="px-2 py-1 border border-gray-300 text-xs focus:outline-none focus:border-blue-500"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        const valueInput = e.target as HTMLInputElement;
-                        const keyInput = valueInput.parentElement?.children[0] as HTMLInputElement;
                         if (keyInput.value.trim() && valueInput.value.trim()) {
                           const newHeaders = [...headersArray, { key: keyInput.value, value: valueInput.value }];
                           updateHeaders(newHeaders);
                           keyInput.value = '';
                           valueInput.value = '';
-                          keyInput.focus();
                         }
-                      }
-                    }}
-                  />
-                  <div className="w-8"></div>
+                      }}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Value"
+                      className="px-2 py-1 border border-gray-300 text-xs focus:outline-none focus:border-blue-500"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          const valueInput = e.target as HTMLInputElement;
+                          const keyInput = valueInput.parentElement?.children[0] as HTMLInputElement;
+                          if (keyInput.value.trim() && valueInput.value.trim()) {
+                            const newHeaders = [...headersArray, { key: keyInput.value, value: valueInput.value }];
+                            updateHeaders(newHeaders);
+                            keyInput.value = '';
+                            valueInput.value = '';
+                            keyInput.focus();
+                          }
+                        }
+                      }}
+                    />
+                    <button
+                      onClick={() => {
+                        const container = document.activeElement?.closest('.grid') as HTMLElement;
+                        if (container) {
+                          const keyInput = container.children[0] as HTMLInputElement;
+                          const valueInput = container.children[1] as HTMLInputElement;
+                          const key = keyInput.value.trim();
+                          const value = valueInput.value.trim();
+                          if (key && value) {
+                            const newHeaders = [...headersArray, { key, value }];
+                            updateHeaders(newHeaders);
+                            keyInput.value = '';
+                            valueInput.value = '';
+                            keyInput.focus();
+                          }
+                        }
+                      }}
+                      className="bg-blue-500 text-white w-6 h-6 text-xs hover:bg-blue-600 transition-colors rounded flex items-center justify-center"
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="h-full flex flex-col">
+                  <div className="text-xs text-gray-600 mb-1">
+                    Bulk edit headers (format: key: value, one per line)
+                  </div>
+                  <div className="flex-1 border border-gray-200">
+                    <Editor
+                      height="100%"
+                      defaultLanguage="text"
+                      value={headersToBulkText()}
+                      onChange={(value) => {
+                        if (value !== undefined) {
+                          const newHeaders = bulkTextToHeaders(value);
+                          updateTab(tabId, { headers: newHeaders });
+                        }
+                      }}
+                      theme="vs-light"
+                      options={{
+                        minimap: { enabled: false },
+                        fontSize: 12,
+                        lineNumbers: 'on',
+                        glyphMargin: false,
+                        folding: false,
+                        lineDecorationsWidth: 10,
+                        lineNumbersMinChars: 3,
+                        scrollBeyondLastLine: false,
+                        automaticLayout: true,
+                        wordWrap: 'on',
+                        placeholder: 'Content-Type: application/json\nAuthorization: Bearer token\nX-Custom-Header: value'
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -677,18 +953,23 @@ const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
         </div>
         
         {/* Response Content Toolbar */}
-        {response && (responseView === 'body' || responseView === 'formatted' || responseView === 'raw' || responseView === 'preview') && (
+        {response && (responseView === 'body' || responseView === 'json' || responseView === 'xml' || responseView === 'html' || responseView === 'javascript' || responseView === 'raw' || responseView === 'hex' || responseView === 'base64' || responseView === 'formatted' || responseView === 'preview') && (
           <div className="border-b border-gray-200 bg-white px-2 py-1 flex items-center justify-between">
             <div className="flex items-center space-x-2">
               {/* View mode selector */}
               <div className="flex items-center space-x-1">
                 <select
-                  value={responseView === 'body' ? 'formatted' : responseView}
+                  value={responseView === 'body' ? 'json' : responseView}
                   onChange={(e) => setResponseView(e.target.value as any)}
-                  className="px-1 py-0.5 border border-gray-300 text-xs focus:outline-none focus:border-blue-500"
+                  className="px-2 py-0.5 border border-gray-300 text-xs focus:outline-none focus:border-blue-500 bg-white"
                 >
-                  <option value="formatted">Pretty</option>
-                  <option value="raw">Raw</option>
+                  <option value="json">✓ JSON</option>
+                  <option value="xml">⌘ XML</option>
+                  <option value="html">≡ HTML</option>
+                  <option value="javascript">JS JavaScript</option>
+                  <option value="raw">⬜ Raw</option>
+                  <option value="hex">0x Hex</option>
+                  <option value="base64">⚏ Base64</option>
                 </select>
                 
                 <button
@@ -745,15 +1026,15 @@ const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
         <div className="flex-1 overflow-auto">
           {response ? (
             <div className="h-full">
-              {/* Body view */}
-              {(responseView === 'body' || responseView === 'formatted' || responseView === 'raw' || responseView === 'preview') && (
+              {/* Body view with various formats */}
+              {(responseView === 'body' || responseView === 'json' || responseView === 'xml' || responseView === 'html' || responseView === 'javascript' || responseView === 'raw' || responseView === 'hex' || responseView === 'base64' || responseView === 'formatted' || responseView === 'preview') && (
                 <div className="h-full p-2">
-                  {(responseView === 'formatted' || responseView === 'body') && (
+                  {(responseView === 'json' || responseView === 'formatted' || responseView === 'body') && (
                     <div className="h-full border border-gray-200">
                       <Editor
                         height="100%"
                         defaultLanguage="json"
-                        value={JSON.stringify(response.data, null, 2)}
+                        value={formatResponseContent(response.data, 'json')}
                         theme="vs-light"
                         options={{
                           readOnly: true,
@@ -771,12 +1052,85 @@ const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                       />
                     </div>
                   )}
+                  
+                  {responseView === 'xml' && (
+                    <div className="h-full border border-gray-200">
+                      <Editor
+                        height="100%"
+                        defaultLanguage="xml"
+                        value={formatResponseContent(response.data, 'xml')}
+                        theme="vs-light"
+                        options={{
+                          readOnly: true,
+                          minimap: { enabled: false },
+                          fontSize: 12,
+                          lineNumbers: 'on',
+                          glyphMargin: false,
+                          folding: true,
+                          lineDecorationsWidth: 10,
+                          lineNumbersMinChars: 3,
+                          scrollBeyondLastLine: false,
+                          automaticLayout: true,
+                          wordWrap: 'on'
+                        }}
+                      />
+                    </div>
+                  )}
+                  
+                  {responseView === 'html' && (
+                    <div className="h-full border border-gray-200">
+                      <Editor
+                        height="100%"
+                        defaultLanguage="html"
+                        value={formatResponseContent(response.data, 'html')}
+                        theme="vs-light"
+                        options={{
+                          readOnly: true,
+                          minimap: { enabled: false },
+                          fontSize: 12,
+                          lineNumbers: 'on',
+                          glyphMargin: false,
+                          folding: true,
+                          lineDecorationsWidth: 10,
+                          lineNumbersMinChars: 3,
+                          scrollBeyondLastLine: false,
+                          automaticLayout: true,
+                          wordWrap: 'on'
+                        }}
+                      />
+                    </div>
+                  )}
+                  
+                  {responseView === 'javascript' && (
+                    <div className="h-full border border-gray-200">
+                      <Editor
+                        height="100%"
+                        defaultLanguage="javascript"
+                        value={formatResponseContent(response.data, 'javascript')}
+                        theme="vs-light"
+                        options={{
+                          readOnly: true,
+                          minimap: { enabled: false },
+                          fontSize: 12,
+                          lineNumbers: 'on',
+                          glyphMargin: false,
+                          folding: true,
+                          lineDecorationsWidth: 10,
+                          lineNumbersMinChars: 3,
+                          scrollBeyondLastLine: false,
+                          automaticLayout: true,
+                          wordWrap: 'on'
+                        }}
+                      />
+                    </div>
+                  )}
+                  
                   {responseView === 'raw' && (
                     <div className="h-full border border-gray-200">
                       <Editor
                         height="100%"
                         defaultLanguage="text"
-                        value={JSON.stringify(response.data)}
+                        value={formatResponseContent(response.data, 'raw')}
                         theme="vs-light"
                         options={{
                           readOnly: true,
@@ -794,6 +1148,57 @@ const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                       />
                     </div>
                   )}
+                  
+                  {responseView === 'hex' && (
+                    <div className="h-full border border-gray-200">
+                      <Editor
+                        height="100%"
+                        defaultLanguage="text"
+                        value={formatResponseContent(response.data, 'hex')}
+                        theme="vs-light"
+                        options={{
+                          readOnly: true,
+                          minimap: { enabled: false },
+                          fontSize: 11,
+                          fontFamily: 'monospace',
+                          lineNumbers: 'on',
+                          glyphMargin: false,
+                          folding: false,
+                          lineDecorationsWidth: 10,
+                          lineNumbersMinChars: 3,
+                          scrollBeyondLastLine: false,
+                          automaticLayout: true,
+                          wordWrap: 'on'
+                        }}
+                      />
+                    </div>
+                  )}
+                  
+                  {responseView === 'base64' && (
+                    <div className="h-full border border-gray-200">
+                      <Editor
+                        height="100%"
+                        defaultLanguage="text"
+                        value={formatResponseContent(response.data, 'base64')}
+                        theme="vs-light"
+                        options={{
+                          readOnly: true,
+                          minimap: { enabled: false },
+                          fontSize: 11,
+                          fontFamily: 'monospace',
+                          lineNumbers: 'on',
+                          glyphMargin: false,
+                          folding: false,
+                          lineDecorationsWidth: 10,
+                          lineNumbersMinChars: 3,
+                          scrollBeyondLastLine: false,
+                          automaticLayout: true,
+                          wordWrap: 'on'
+                        }}
+                      />
+                    </div>
+                  )}
+                  
                   {responseView === 'preview' && (
                     <div className="bg-gray-50 p-2 text-xs h-full overflow-auto border border-gray-200">
                       {typeof response.data === 'object' ? (
@@ -808,7 +1213,12 @@ const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                             {Object.entries(response.data).map(([key, value]) => (
                               <tr key={key} className="border-b hover:bg-white">
                                 <td className="p-1 font-medium">{key}</td>
-                                <td className="p-1">{String(value)}</td>
+                                <td className="p-1">
+                                  {typeof value === 'object' && value !== null 
+                                    ? JSON.stringify(value, null, 2)
+                                    : String(value)
+                                  }
+                                </td>
                               </tr>
                             ))}
                           </tbody>
