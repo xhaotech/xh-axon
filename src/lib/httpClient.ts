@@ -214,7 +214,7 @@ class HttpClient {
     auth?: any;
   }): Promise<ApiResponse> {
     try {
-      const response = await this.post('/api/history', request);
+      const response = await this.post('/api/requests/save', request);
       return response;
     } catch (error) {
       console.error('Save request failed:', error);
@@ -234,7 +234,7 @@ class HttpClient {
     folder?: string;
   }): Promise<ApiResponse> {
     try {
-      const response = await this.post('/api/favorites', request);
+      const response = await this.post('/api/requests/favorite', request);
       return response;
     } catch (error) {
       console.error('Add to favorites failed:', error);

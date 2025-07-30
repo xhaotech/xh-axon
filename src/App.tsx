@@ -3,7 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { MainPanel } from './components/MainPanel';
-import { LoginPage } from './components/LoginPage';
+import { LoginPage } from './components/LoginPageNew';
 import { StatusBar } from './components/StatusBar';
 import { useAppStore } from './store/useAppStore';
 

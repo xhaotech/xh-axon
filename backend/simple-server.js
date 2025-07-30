@@ -11,6 +11,16 @@ const PORT = process.env.PORT || 3100;
 // 内存存储（生产环境应该使用数据库）
 let savedRequests = [];
 let favoriteRequests = [];
+let users = [
+  {
+    id: '1',
+    username: 'admin',
+    email: 'admin@xhtech.com',
+    password: 'admin123', // 实际应用中应该加密
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin',
+    created_at: new Date().toISOString()
+  }
+];
 
 // 中间件
 app.use(cors({
@@ -108,6 +118,163 @@ app.all('/test-auth', (req, res) => {
       message: 'Could not decode credentials'
     });
   }
+});
+
+// 用户注册
+app.post('/api/auth/register', (req, res) => {
+  const { username, email, password, phone } = req.body;
+  
+  if (!username || !email || !password) {
+    return res.status(400).json({ 
+      success: false,
+      error: '用户名、邮箱和密码不能为空' 
+    });
+  }
+  
+  // 检查用户是否已存在
+  const existingUser = users.find(user => 
+    user.username === username || user.email === email || (phone && user.phone === phone)
+  );
+  
+  if (existingUser) {
+    return res.status(400).json({ 
+      success: false,
+      error: existingUser.username === username ? '用户名已存在' : 
+             existingUser.email === email ? '邮箱已被注册' : '手机号已被注册'
+    });
+  }
+  
+  const newUser = {
+    id: Date.now().toString(),
+    username,
+    email,
+    phone,
+    password, // 实际应用中需要加密
+    avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
+    created_at: new Date().toISOString()
+  };
+  
+  users.push(newUser);
+  
+  const token = 'simple-jwt-' + newUser.id + '-' + Date.now();
+  
+  console.log('User registered:', username, '- Total users:', users.length);
+  
+  res.json({
+    success: true,
+    message: '注册成功',
+    user: {
+      id: newUser.id,
+      username: newUser.username,
+      email: newUser.email,
+      phone: newUser.phone,
+      avatar: newUser.avatar,
+      created_at: newUser.created_at
+    },
+    token
+  });
+});
+
+// 用户登录
+app.post('/api/auth/login', (req, res) => {
+  const { username, email, phone, password, verificationCode } = req.body;
+  
+  // 手机验证码登录
+  if (phone && verificationCode) {
+    if (verificationCode !== '123456') {
+      return res.status(400).json({ 
+        success: false,
+        error: '验证码错误' 
+      });
+    }
+    
+    let user = users.find(u => u.phone === phone);
+    
+    if (!user) {
+      // 自动注册
+      user = {
+        id: Date.now().toString(),
+        username: `用户${phone.slice(-4)}`,
+        email: `${phone}@temp.com`,
+        phone,
+        password: 'temp-password',
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${phone}`,
+        created_at: new Date().toISOString()
+      };
+      users.push(user);
+    }
+    
+    const token = 'simple-jwt-' + user.id + '-' + Date.now();
+    
+    return res.json({
+      success: true,
+      message: '登录成功',
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        phone: user.phone,
+        avatar: user.avatar,
+        created_at: user.created_at
+      },
+      token
+    });
+  }
+  
+  // 用户名/邮箱登录
+  if (!password) {
+    return res.status(400).json({ 
+      success: false,
+      error: '密码不能为空' 
+    });
+  }
+  
+  const user = users.find(u => 
+    (username && u.username === username) || 
+    (email && u.email === email)
+  );
+  
+  if (!user || user.password !== password) {
+    return res.status(400).json({ 
+      success: false,
+      error: '用户名/邮箱或密码错误' 
+    });
+  }
+  
+  const token = 'simple-jwt-' + user.id + '-' + Date.now();
+  
+  res.json({
+    success: true,
+    message: '登录成功',
+    user: {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      phone: user.phone,
+      avatar: user.avatar,
+      created_at: user.created_at
+    },
+    token
+  });
+});
+
+// 发送验证码
+app.post('/api/auth/send-code', (req, res) => {
+  const { phone } = req.body;
+  
+  if (!phone) {
+    return res.status(400).json({ 
+      success: false,
+      error: '手机号不能为空' 
+    });
+  }
+  
+  console.log(`模拟发送验证码到 ${phone}: 123456`);
+  
+  res.json({
+    success: true,
+    message: '验证码已发送'
+  });
 });
 
 // 保存请求端点

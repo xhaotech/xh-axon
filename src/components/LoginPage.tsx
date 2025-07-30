@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff, Mail, Phone, Lock, User, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, Mail, Phone, Lock, User, ArrowRight, UserPlus } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { validateUserLogin, validatePhoneLogin, demoUsers } from '../lib/auth';
 import { httpClient } from '../lib/httpClient';
 import toast from 'react-hot-toast';
 
 type LoginMethod = 'username' | 'phone';
+type AuthMode = 'login' | 'register';
 
 export const LoginPage: React.FC = () => {
   const [loginMethod, setLoginMethod] = useState<LoginMethod>('username');
+  const [authMode, setAuthMode] = useState<AuthMode>('login');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [countdown, setCountdown] = useState(0);
@@ -25,6 +27,15 @@ export const LoginPage: React.FC = () => {
   const [phoneForm, setPhoneForm] = useState({
     phone: '',
     verificationCode: ''
+  });
+
+  // 注册表单状态
+  const [registerForm, setRegisterForm] = useState({
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    phone: ''
   });
 
   // 测试后端连接
@@ -157,6 +168,54 @@ export const LoginPage: React.FC = () => {
     }
   };
 
+  // 用户注册
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!registerForm.username || !registerForm.email || !registerForm.password) {
+      toast.error('请填写完整的注册信息');
+      return;
+    }
+
+    if (registerForm.password !== registerForm.confirmPassword) {
+      toast.error('两次输入的密码不一致');
+      return;
+    }
+
+    if (registerForm.password.length < 6) {
+      toast.error('密码长度至少6位');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await httpClient.post('/api/auth/register', {
+        username: registerForm.username,
+        email: registerForm.email,
+        password: registerForm.password,
+        phone: registerForm.phone || undefined,
+      });
+
+      if (response.success && response.data.success) {
+        const user = {
+          id: response.data.user.id,
+          username: response.data.user.username,
+          email: response.data.user.email,
+          avatar: response.data.user.avatar
+        };
+
+        login(user, response.data.token);
+        toast.success('注册成功！');
+      } else {
+        toast.error(response.data.error || '注册失败');
+      }
+    } catch (error: any) {
+      console.error('Registration failed:', error);
+      toast.error(error.response?.data?.error || '注册失败，请重试');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
@@ -171,6 +230,71 @@ export const LoginPage: React.FC = () => {
 
         {/* 登录卡片 */}
         <div className="bg-white rounded-2xl shadow-xl p-8">
+          {/* 登录/注册模式切换 */}
+          <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
+            <button
+              type="button"
+              onClick={() => setAuthMode('login')}
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                authMode === 'login'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <User className="w-4 h-4 inline-block mr-2" />
+              登录
+            </button>
+            <button
+              type="button"
+              onClick={() => setAuthMode('register')}
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                authMode === 'register'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <UserPlus className="w-4 h-4 inline-block mr-2" />
+              注册
+            </button>
+          </div>
+
+          {authMode === 'login' ? (
+            <>
+              {/* 登录方式切换 */}
+              <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
+                <button
+                  type="button"
+                  onClick={() => setLoginMethod('username')}
+                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                    loginMethod === 'username'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <User className="w-4 h-4 inline-block mr-2" />
+                  用户名
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLoginMethod('phone')}
+                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                    loginMethod === 'phone'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <Phone className="w-4 h-4 inline-block mr-2" />
+                  手机号
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">创建新账户</h2>
+              <p className="text-gray-600 text-sm">填写以下信息完成注册</p>
+            </div>
+          )}
+
           {/* 登录方式切换 */}
           <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
             <button
