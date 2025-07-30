@@ -1,90 +1,290 @@
+<<<<<<< HEAD
 
-# XH-Axon · 迅联
+# XH Axon - HTTP API Client
 
-[![version](https://img.shields.io/badge/version-0.1.0-blue)](https://github.com/your-org/xh-axon/releases)
-[![build](https://img.shields.io/github/actions/workflow/status/your-org/xh-axon/ci.yml?branch=main)](https://github.com/your-org/xh-axon/actions)
+一个现代化的 HTTP API 客户端工具，类似于 Postman，基于 React + TypeScript + Tailwind CSS 构建。
 
----
+## 特色功能 · Key Features
 
-## 🧩 项目简介 · Project Introduction
+🚦 **多种 HTTP 请求方法支持**  
+支持 GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS 等 HTTP 请求方法
 
-**XH-Axon（迅联）** 是一款专为开发者设计的现代化 API 请求与测试工具，助力快速接口调试、认证、多环境管理和请求结果保存等一站式开发体验。XH-Axon 以“迅联”之名，寓意极致效率与协作。界面简洁，操作流畅，让 API 连接更智能、更高效。
+🔒 **多种认证方式**  
+支持 Bearer Token, Basic Auth, OAuth 2.0 等多种身份认证方式
 
-**XH-Axon** is a modern, developer-focused API request & testing tool for fast interface debugging, flexible authentication, environment management, and request result saving—all in one place. Named after “XH” for excellence and “Axon” for speed, XH-Axon empowers efficient API development and seamless collaboration with a clean, intuitive UI.
+🌐 **环境变量配置**  
+支持多环境切换和变量管理，便于在不同环境间快速切换
 
----
+📜 **请求历史与收藏**  
+自动保存请求历史，支持收藏常用请求
 
-## 🚀 特色功能 · Key Features
+🛠 **代码生成**  
+支持生成 cURL, Fetch 等多种语言的代码片段
 
-- 🚦 支持多种 HTTP 请求（GET, POST, PUT, DELETE, PATCH 等）  
-  **HTTP methods**: GET, POST, PUT, DELETE, PATCH, etc.
+📱 **现代化界面**  
+基于 Tailwind CSS 的现代化、响应式用户界面
 
-- 🔒 多种认证方式（Token, Basic Auth, OAuth 等）  
-  **Authentication**: Bearer Token, Basic Auth, OAuth, and more
+💎 **Monaco Editor 集成**  
+集成强大的Monaco Editor，提供专业的代码编辑和JSON查看体验
 
-- 🌐 环境变量配置与多环境切换  
-  **Environment management**: Variables and profiles
+## 技术栈 · Tech Stack
 
-- 📜 请求历史与收藏  
-  **History & Favorites**: Save and review requests
+- **前端框架**: React 18 + TypeScript
+- **样式框架**: Tailwind CSS
+- **状态管理**: Zustand
+- **HTTP 客户端**: Axios
+- **图标库**: Lucide React
+- **代码编辑器**: Monaco Editor
+- **构建工具**: Vite
+- **部署**: Vercel
 
-- 🛠 代码生成（cURL, Fetch 等开发语言）  
-  **Code Generation**: cURL, Fetch, and various language snippets
+## 快速开始 · Quick Start
 
----
+### 安装依赖
 
-## 🛠 技术栈 · Tech Stack
+```bash
+pnpm install
+```
 
-- **前端 / Frontend**: React + TypeScript + Tailwind CSS  
-- **状态管理 / State**: Zustand  
-- **请求代理 / Proxy**: Node.js Middleware（用于 CORS 支持）  
-- **部署 / Deployment**: Vercel
+### 开发模式
 
----
+```bash
+# 启动前端
+pnpm dev
 
-## ⚡ 快速开始 · Getting Started
+# 启动后端（新终端）
+cd backend
+node simple-server.js
+```
 
-1. **克隆项目 / Clone the repo**
-    ```bash
-    git clone https://github.com/your-org/xh-axon.git
-    cd xh-axon
-    ```
+### 构建生产版本
 
-2. **安装依赖 / Install dependencies**
-    ```bash
-    npm install
-    # 或 / or
-    yarn
-    ```
+```bash
+pnpm build
+```
 
-3. **启动开发服务 / Start dev server**
-    ```bash
-    npm run dev
-    ```
+### 预览生产版本
 
-4. **（可选）启动后端代理 / (Optional) Start proxy server**
-    ```bash
-    cd proxy
-    npm install
-    npm run start
-    # 按 README 指引配置代理端口
-    ```
+```bash
+pnpm preview
+```
 
-5. **访问本地应用 / Open in browser**  
-   默认地址: http://localhost:3000
+## 项目结构
 
----
+```
+src/
+├── components/             # React 组件
+│   ├── Header.tsx         # 顶部导航栏
+│   ├── Sidebar.tsx        # 侧边栏（历史记录、收藏等）
+│   ├── MainPanel.tsx      # 主面板容器
+│   ├── RequestTabs.tsx    # 请求标签页
+│   ├── RequestBuilder.tsx # 请求构建器
+│   ├── ResponseViewer.tsx # 响应查看器（Monaco Editor）
+│   └── LoginPage.tsx      # 登录页面
+├── store/                 # 状态管理
+│   └── useAppStore.ts     # Zustand 状态存储
+├── lib/                   # 工具库
+│   ├── api.ts            # API 接口
+│   ├── auth.ts           # 认证相关
+│   ├── httpClient.ts     # HTTP 客户端
+│   └── utils.ts          # 工具函数
+├── types/                 # TypeScript 类型声明
+│   └── copy-to-clipboard.d.ts
+├── App.tsx               # 主应用组件
+├── main.tsx              # 应用入口
+└── index.css             # 全局样式
 
-## 🤝 贡献指南 · Contribution
+backend/
+├── simple-server.js      # 后端服务器
+├── package.json          # 后端依赖
+└── src/                  # 后端源码
+    ├── routes/           # 路由
+    ├── middleware/       # 中间件
+    └── types/           # 类型定义
+```
 
-欢迎提交 Issue 和 PR，参与共建！请先阅读 [CONTRIBUTING.md](./CONTRIBUTING.md) 获取开发规范建议。
+## 主要功能
 
-Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines and best practices.
+### 1. 请求构建器
+- HTTP 方法选择（GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS）
+- URL 输入和验证
+- 查询参数管理
+- 请求头配置
+- 请求体编辑（JSON、Form Data、Raw）
+- 身份认证配置（Basic Auth, Bearer Token）
 
----
+### 2. 响应查看器（新功能）
+- **Monaco Editor 集成**: 专业的代码编辑器体验
+- **多种视图模式**: 格式化、原始、JSON树状、Headers视图
+- **搜索功能**: 在响应中快速搜索文本
+- **复制下载**: 支持复制到剪贴板和下载响应数据
+- **全屏模式**: 大数据量时的全屏查看模式
+- **语法高亮**: 支持JSON、XML、HTML等多种格式
 
-> XH-Axon（迅联）—— 智能·高效·连接无限  
-> XH-Axon: Smart · Efficient · Connect Everything
+### 3. 环境管理
+- 创建和管理多个环境
+- 环境变量配置
+- 环境间快速切换
 
----
+### 4. 历史记录
+- 自动保存所有请求
+- 按时间排序显示
+- 快速重新发送请求
+- 持久化存储到后端
 
+### 5. 收藏功能
+- 收藏常用请求
+- 快速访问收藏的请求
+- 后端持久化存储
+
+### 6. 身份认证
+- Basic Auth 支持
+- Bearer Token 支持
+- 认证持久化，页面刷新不丢失登录状态
+
+## 已实现功能 ✅
+
+- [x] 完整的请求构建器
+- [x] Monaco Editor 响应显示
+- [x] 多种响应查看模式
+- [x] 请求历史记录
+- [x] 收藏功能
+- [x] Basic Auth 认证
+- [x] 认证持久化
+- [x] 后端API支持
+- [x] 请求保存和管理
+- [x] 响应数据处理和美化
+
+## 贡献指南
+
+欢迎提交 Issue 和 Pull Request 来改进这个项目。
+
+## 许可证
+
+MIT License
+
+=======
+# XH Axon - HTTP API Client
+
+一个现代化的 HTTP API 客户端工具，类似于 Postman，基于 React + TypeScript + Tailwind CSS 构建。
+
+## 特色功能 · Key Features
+
+🚦 **多种 HTTP 请求方法支持**  
+支持 GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS 等 HTTP 请求方法
+
+🔒 **多种认证方式**  
+支持 Bearer Token, Basic Auth, OAuth 2.0 等多种身份认证方式
+
+🌐 **环境变量配置**  
+支持多环境切换和变量管理，便于在不同环境间快速切换
+
+📜 **请求历史与收藏**  
+自动保存请求历史，支持收藏常用请求
+
+🛠 **代码生成**  
+支持生成 cURL, Fetch 等多种语言的代码片段
+
+📱 **现代化界面**  
+基于 Tailwind CSS 的现代化、响应式用户界面
+
+## 技术栈 · Tech Stack
+
+- **前端框架**: React 18 + TypeScript
+- **样式框架**: Tailwind CSS
+- **状态管理**: Zustand
+- **HTTP 客户端**: Axios
+- **图标库**: Lucide React
+- **构建工具**: Vite
+- **部署**: Vercel
+
+## 快速开始 · Quick Start
+
+### 安装依赖
+
+```bash
+npm install
+```
+
+### 开发模式
+
+```bash
+npm run dev
+```
+
+### 构建生产版本
+
+```bash
+npm run build
+```
+
+### 预览生产版本
+
+```bash
+npm run preview
+```
+
+## 项目结构
+
+```
+src/
+├── components/          # React 组件
+│   ├── Header.tsx      # 顶部导航栏
+│   ├── Sidebar.tsx     # 侧边栏（历史记录、收藏等）
+│   ├── MainPanel.tsx   # 主面板容器
+│   ├── RequestTabs.tsx # 请求标签页
+│   └── RequestBuilder.tsx # 请求构建器
+├── store/              # 状态管理
+│   └── useAppStore.ts  # Zustand 状态存储
+├── App.tsx            # 主应用组件
+├── main.tsx           # 应用入口
+└── index.css          # 全局样式
+```
+
+## 主要功能
+
+### 1. 请求构建器
+- HTTP 方法选择
+- URL 输入和验证
+- 查询参数管理
+- 请求头配置
+- 请求体编辑（JSON、Form Data、Raw）
+- 身份认证配置
+
+### 2. 环境管理
+- 创建和管理多个环境
+- 环境变量配置
+- 环境间快速切换
+
+### 3. 历史记录
+- 自动保存所有请求
+- 按时间排序显示
+- 快速重新发送请求
+
+### 4. 收藏功能
+- 收藏常用请求
+- 快速访问收藏的请求
+
+### 5. 代码生成
+- 生成 cURL 命令
+- 生成 JavaScript Fetch 代码
+- 支持更多语言的代码片段
+
+## 待实现功能
+
+- [ ] 请求响应显示
+- [ ] 响应数据格式化
+- [ ] 请求性能分析
+- [ ] 批量请求
+- [ ] API 文档导入/导出
+- [ ] 团队协作功能
+- [ ] 接口测试自动化
+
+## 贡献指南
+
+欢迎提交 Issue 和 Pull Request 来改进这个项目。
+
+## 许可证
+
+MIT License
+>>>>>>> 3adc87b7 (Upload Source & README)
