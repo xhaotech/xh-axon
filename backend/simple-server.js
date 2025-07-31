@@ -15,9 +15,28 @@ let users = [
   {
     id: '1',
     username: 'admin',
-    email: 'admin@xhtech.com',
+    email: 'admin@example.com',
     password: 'admin123', // 实际应用中应该加密
+    phone: '13800138001',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin',
+    created_at: new Date().toISOString()
+  },
+  {
+    id: '2',
+    username: 'demo',
+    email: 'demo@example.com',
+    password: 'demo123',
+    phone: '13800138002',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=demo',
+    created_at: new Date().toISOString()
+  },
+  {
+    id: '3',
+    username: 'test',
+    email: 'test@example.com',
+    password: 'test123',
+    phone: '13800138003',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=test',
     created_at: new Date().toISOString()
   }
 ];
@@ -39,11 +58,44 @@ app.use(express.urlencoded({ extended: true }));
 
 // 基本路由
 app.get('/health', (req, res) => {
+  const uptime = process.uptime();
+  const uptimeFormatted = `${Math.floor(uptime / 3600)}小时 ${Math.floor((uptime % 3600) / 60)}分钟 ${Math.floor(uptime % 60)}秒`;
+  
   res.json({ 
-    status: 'ok', 
+    status: 'ok',
+    service: 'XH Axon Backend',
+    version: '1.0.0',
     timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    version: '1.0.0'
+    uptime: uptimeFormatted,
+    uptimeSeconds: uptime,
+    environment: process.env.NODE_ENV || 'development',
+    features: {
+      userAuth: true,
+      requestProxy: true,
+      requestSave: true,
+      requestFavorites: true,
+      cors: true
+    },
+    database: {
+      type: 'memory',
+      users: users.length,
+      savedRequests: savedRequests.length,
+      favoriteRequests: favoriteRequests.length
+    },
+    endpoints: {
+      auth: [
+        'POST /api/auth/register',
+        'POST /api/auth/login', 
+        'POST /api/auth/send-code'
+      ],
+      requests: [
+        'POST /api/requests/save',
+        'POST /api/requests/favorite',
+        'GET /api/requests/saved',
+        'GET /api/requests/favorites',
+        'POST /api/proxy'
+      ]
+    }
   });
 });
 
@@ -181,12 +233,18 @@ app.post('/api/auth/login', (req, res) => {
   
   // 手机验证码登录
   if (phone && verificationCode) {
-    if (verificationCode !== '123456') {
+    // 验证验证码
+    const storedCode = verificationCodes.get(phone);
+    if (!storedCode || storedCode !== verificationCode) {
       return res.status(400).json({ 
         success: false,
-        error: '验证码错误' 
+        error: '验证码错误或已过期' 
       });
     }
+    
+    // 验证成功，清除验证码
+    verificationCodes.delete(phone);
+    verificationCodes.delete(phone + '_time');
     
     let user = users.find(u => u.phone === phone);
     
@@ -202,6 +260,7 @@ app.post('/api/auth/login', (req, res) => {
         created_at: new Date().toISOString()
       };
       users.push(user);
+      console.log('Auto-registered user via phone:', phone);
     }
     
     const token = 'simple-jwt-' + user.id + '-' + Date.now();
@@ -258,6 +317,9 @@ app.post('/api/auth/login', (req, res) => {
   });
 });
 
+// 验证码存储（实际应用中应该使用Redis等缓存）
+let verificationCodes = new Map();
+
 // 发送验证码
 app.post('/api/auth/send-code', (req, res) => {
   const { phone } = req.body;
@@ -269,11 +331,48 @@ app.post('/api/auth/send-code', (req, res) => {
     });
   }
   
-  console.log(`模拟发送验证码到 ${phone}: 123456`);
+  // 验证手机号格式
+  const phoneRegex = /^1[3-9]\d{9}$/;
+  if (!phoneRegex.test(phone)) {
+    return res.status(400).json({ 
+      success: false,
+      error: '请输入正确的手机号格式' 
+    });
+  }
+  
+  // 检查发送频率限制（1分钟内只能发送一次）
+  const lastSentTime = verificationCodes.get(phone + '_time');
+  if (lastSentTime && Date.now() - lastSentTime < 60000) {
+    const waitTime = Math.ceil((60000 - (Date.now() - lastSentTime)) / 1000);
+    return res.status(429).json({ 
+      success: false,
+      error: `请等待 ${waitTime} 秒后再试` 
+    });
+  }
+  
+  // 生成6位数验证码
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  
+  // 存储验证码（5分钟有效期）
+  verificationCodes.set(phone, code);
+  verificationCodes.set(phone + '_time', Date.now());
+  
+  // 5分钟后自动清除
+  setTimeout(() => {
+    verificationCodes.delete(phone);
+    verificationCodes.delete(phone + '_time');
+  }, 5 * 60 * 1000);
+  
+  console.log(`📱 模拟发送验证码到 ${phone}: ${code} (开发环境显示)`);
   
   res.json({
     success: true,
-    message: '验证码已发送'
+    message: '验证码已发送，请注意查收',
+    // 开发环境下返回验证码，生产环境不应该返回
+    ...(process.env.NODE_ENV === 'development' && { 
+      devCode: code,
+      devMessage: '开发环境：验证码为 ' + code 
+    })
   });
 });
 

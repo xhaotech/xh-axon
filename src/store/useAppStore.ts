@@ -114,8 +114,8 @@ interface AppState {
   // UI state
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
-  activePanel: 'collections' | 'history' | 'favorites' | 'environments';
-  setActivePanel: (panel: 'collections' | 'history' | 'favorites' | 'environments') => void;
+  activePanel: 'history' | 'favorites' | 'environments';
+  setActivePanel: (panel: 'history' | 'favorites' | 'environments') => void;
 
   // Backend connection
   testBackendConnection: () => Promise<boolean>;
@@ -254,8 +254,8 @@ export const useAppStore = create<AppState>((set) => ({
   // UI state
   sidebarCollapsed: false,
   setSidebarCollapsed: (sidebarCollapsed: boolean) => set({ sidebarCollapsed }),
-  activePanel: 'collections' as const,
-  setActivePanel: (activePanel: 'collections' | 'history' | 'favorites' | 'environments') => set({ activePanel }),
+  activePanel: 'history' as const,
+  setActivePanel: (activePanel: 'history' | 'favorites' | 'environments') => set({ activePanel }),
 
   // Load saved and favorite requests
   loadSavedRequests: async () => {

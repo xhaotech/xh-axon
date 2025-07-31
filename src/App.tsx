@@ -3,7 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { MainPanel } from './components/MainPanel';
-import { LoginPage } from './components/LoginPageNew';
+import { LoginPageRedesigned as LoginPage } from './components/LoginPageRedesigned';
 import { StatusBar } from './components/StatusBar';
 import { useAppStore } from './store/useAppStore';
 
@@ -54,39 +54,41 @@ function App() {
 
   return (
     <div className="h-screen flex flex-col bg-white">
-      <Header />
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
-        <div className={`flex-1 transition-all duration-200 ${
-          sidebarCollapsed ? 'ml-0' : 'ml-72'
-        }`}>
-          <MainPanel />
-        </div>
+    <Header />
+    <div className="flex flex-1 overflow-hidden">
+      <Sidebar />
+      <div className={`flex-1 transition-all duration-200 ${
+        sidebarCollapsed ? 'ml-0' : 'ml-72'
+      }`}>
+        <MainPanel />
       </div>
-      <StatusBar />
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 3000,
+    </div>
+    <StatusBar />
+    <Toaster
+      position="top-center"
+      toastOptions={{
+        duration: 3000,
+        style: {
+          background: '#363636',
+          color: '#fff',
+          fontSize: '14px',
+          textAlign: 'center',
+          minWidth: '300px',
+        },
+        success: {
           style: {
-            background: '#363636',
+            background: '#059669',
             color: '#fff',
-            fontSize: '14px',
           },
-          success: {
-            style: {
-              background: '#059669',
-              color: '#fff',
-            },
+        },
+        error: {
+          style: {
+            background: '#dc2626',
+            color: '#fff',
           },
-          error: {
-            style: {
-              background: '#dc2626',
-              color: '#fff',
-            },
-          },
-        }}
-      />
+        },
+      }}
+    />
     </div>
   );
 }

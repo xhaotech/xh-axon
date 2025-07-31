@@ -43,12 +43,12 @@ export const Sidebar: React.FC = () => {
   return (
     <div className="w-72 bg-white border-r border-gray-200 flex flex-col fixed left-0 top-10 bottom-6">
       {/* New Request Button */}
-      <div className="p-2 border-b border-gray-200">
+      <div className="p-4 border-b border-gray-200">
         <button
           onClick={handleNewRequest}
-          className="w-full flex items-center justify-center px-2 py-1.5 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
+          className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
-          <Plus size={10} className="mr-1" />
+          <Plus size={12} className="mr-2" />
           新建请求
         </button>
       </div>
@@ -60,14 +60,14 @@ export const Sidebar: React.FC = () => {
             key={tab.id}
             onClick={() => setActivePanel(tab.id as any)}
             className={`
-              flex-1 flex items-center justify-center px-2 py-1.5 text-xs font-medium transition-colors
+              flex-1 flex items-center justify-center px-3 py-2 text-xs font-medium transition-colors
               ${activePanel === tab.id 
                 ? 'bg-white text-blue-600 border-b-2 border-blue-600' 
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
               }
             `}
           >
-            <tab.icon size={10} className="mr-1" />
+            <tab.icon size={12} className="mr-2" />
             {tab.label}
           </button>
         ))}
@@ -78,19 +78,19 @@ export const Sidebar: React.FC = () => {
         {/* History Panel */}
         {activePanel === 'history' && (
           <div className="h-full flex flex-col">
-            <div className="p-2">
-              <div className="relative mb-2">
-                <Search size={10} className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <div className="p-3">
+              <div className="relative mb-3">
+                <Search size={12} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
                   placeholder="搜索历史记录..."
-                  className="w-full pl-6 pr-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                  className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 rounded focus:outline-none focus:border-blue-500"
                 />
               </div>
             </div>
             <div className="flex-1 overflow-y-auto">
               {history.length === 0 ? (
-                <div className="p-2 text-center">
+                <div className="p-4 text-center">
                   <div className="text-gray-400 text-xs">暂无历史记录</div>
                 </div>
               ) : (
@@ -142,9 +142,9 @@ export const Sidebar: React.FC = () => {
                           e.stopPropagation();
                           deleteFromHistory(item.id);
                         }}
-                        className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-gray-200 rounded transition-opacity"
+                        className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 rounded transition-opacity"
                       >
-                        <Trash2 size={10} className="text-gray-400" />
+                        <Trash2 size={12} className="text-gray-400" />
                       </button>
                     </div>
                   ))}
@@ -157,19 +157,19 @@ export const Sidebar: React.FC = () => {
         {/* Favorites Panel */}
         {activePanel === 'favorites' && (
           <div className="h-full flex flex-col">
-            <div className="p-2">
-              <div className="relative mb-2">
-                <Search size={10} className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <div className="p-3">
+              <div className="relative mb-3">
+                <Search size={12} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
                   placeholder="搜索收藏..."
-                  className="w-full pl-6 pr-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                  className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 rounded focus:outline-none focus:border-blue-500"
                 />
               </div>
             </div>
             <div className="flex-1 overflow-y-auto">
               {favorites.length === 0 ? (
-                <div className="p-2 text-center">
+                <div className="p-4 text-center">
                   <div className="text-gray-400 text-xs">暂无收藏</div>
                 </div>
               ) : (
@@ -221,9 +221,9 @@ export const Sidebar: React.FC = () => {
                           e.stopPropagation();
                           deleteFavorite(item.id);
                         }}
-                        className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-gray-200 rounded transition-opacity"
+                        className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 rounded transition-opacity"
                       >
-                        <Trash2 size={10} className="text-gray-400" />
+                        <Trash2 size={12} className="text-gray-400" />
                       </button>
                     </div>
                   ))}
