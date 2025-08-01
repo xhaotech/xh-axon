@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { X, Plus, XCircle, Square, SquareStack, FileX, ChevronLeft, ChevronRight, Edit3 } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { createTranslator, getDefaultLanguage } from '../lib/i18n';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
 
 export const RequestTabs: React.FC = () => {
   const { tabs, activeTab, setActiveTab, closeTab, addTab, updateTab } = useAppStore();
@@ -283,17 +285,16 @@ export const RequestTabs: React.FC = () => {
   return (
     <div className="bg-gray-50 border-b border-gray-200 h-8 w-full flex items-center relative overflow-hidden">
       {/* 左滚动按钮 - Mini模式 */}
-      <button
+      <Button
+        variant="ghost"
+        size="sm"
         onClick={handleScrollLeft}
-        className={`flex-shrink-0 w-6 h-full border-r border-gray-200 z-20 flex items-center justify-center transition-colors ${
-          canScrollLeft 
-            ? 'text-gray-600 hover:bg-gray-200 cursor-pointer' 
-            : 'text-gray-300 cursor-not-allowed'
-        }`}
+        disabled={!canScrollLeft}
+        className="flex-shrink-0 w-6 h-full border-r border-gray-200 rounded-none p-0"
         aria-label={t('scrollLeft')}
       >
         <ChevronLeft size={10} />
-      </button>
+      </Button>
       
       {/* 滚动容器 - Mini模式：更紧凑的宽度计算 */}
       <div 
@@ -331,14 +332,14 @@ export const RequestTabs: React.FC = () => {
               
               {/* 标签名称 - Mini模式，支持重命名 */}
               {editingTabId === tab.id ? (
-                <input
+                <Input
                   ref={editInputRef}
                   type="text"
                   value={editingName}
                   onChange={(e) => setEditingName(e.target.value)}
                   onBlur={() => handleFinishRename(tab.id)}
                   onKeyDown={(e) => handleRenameKeyDown(e, tab.id)}
-                  className="text-xs bg-white border border-blue-400 rounded px-1 py-0 flex-1 min-w-0 font-medium focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="text-xs h-5 border-blue-400 px-1 py-0 flex-1 min-w-0 font-medium focus:ring-1 focus:ring-blue-500"
                   style={{ 
                     minWidth: '15px',
                     maxWidth: '60px'
@@ -365,42 +366,45 @@ export const RequestTabs: React.FC = () => {
               )}
               
               {/* 关闭按钮 - Mini模式：移除菜单按钮，只保留关闭 */}
-              <button
+                            <Button
+                variant="ghost"
+                size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
-                  closeTab(tab.id);
+                  handleCloseTab(tab.id);
                 }}
-                className="text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-all duration-150 flex-shrink-0 p-0.5 rounded hover:bg-red-50"
+                className="opacity-0 group-hover:opacity-100 p-0.5 h-4 w-4 hover:bg-red-100 hover:text-red-600 transition-all duration-150"
                 title={t('closeTab')}
               >
                 <X size={6} />
-              </button>
+              </Button>
             </div>
           ))}
         </div>
       </div>
       
       {/* 右滚动按钮 - Mini模式 */}
-      <button
+      <Button
+        variant="ghost"
+        size="sm"
         onClick={handleScrollRight}
-        className={`flex-shrink-0 w-6 h-full border-l border-gray-200 z-20 flex items-center justify-center transition-colors ${
-          canScrollRight 
-            ? 'text-gray-600 hover:bg-gray-200 cursor-pointer' 
-            : 'text-gray-300 cursor-not-allowed'
-        }`}
+        disabled={!canScrollRight}
+        className="flex-shrink-0 w-6 h-full border-l border-gray-200 rounded-none p-0"
         aria-label={t('scrollRight')}
       >
         <ChevronRight size={10} />
-      </button>
+      </Button>
       
       {/* 新建标签页按钮 - Mini模式 */}
-      <button
+      <Button
+        variant="ghost"
+        size="sm"
         onClick={handleNewTab}
-        className="flex-shrink-0 w-6 h-full text-gray-600 hover:text-gray-900 hover:bg-gray-100 border-l border-gray-200 z-20 flex items-center justify-center transition-colors"
+        className="flex-shrink-0 w-6 h-full border-l border-gray-200 rounded-none p-0"
         title={t('newTab')}
       >
         <Plus size={10} />
-      </button>
+      </Button>
 
       {/* 右键菜单 - Mini模式：通过右键触发 */}
       {showTabMenu && (
@@ -455,11 +459,32 @@ export const RequestTabs: React.FC = () => {
           </button>
           <div className="border-t border-gray-100 my-1"></div>
           <button
-            onClick={handleCloseSaved}
+            onClick={() => handleCloseSaved}
             className="w-full text-left px-2 py-1 text-xs text-gray-700 hover:bg-gray-50 flex items-center space-x-1"
           >
             <FileX size={10} />
             <span>{t('closeSaved')}</span>
+          </button>
+          <div className="border-t border-gray-100 my-1"></div>
+          <button
+            onClick={() => {
+              const tab = tabs.find(t => t.id === showTabMenu);
+              if (tab && tab.url) {
+                navigator.clipboard.writeText(tab.url).then(() => {
+                  console.log('URL copied to clipboard');
+                }).catch(err => {
+                  console.error('Failed to copy URL:', err);
+                });
+              }
+              setShowTabMenu(null);
+            }}
+            className="w-full text-left px-2 py-1 text-xs text-gray-700 hover:bg-gray-50 flex items-center space-x-1"
+          >
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M5 15H4C2.89543 15 2 14.1046 2 13V4C2 2.89543 2.89543 2 4 2H13C14.1046 2 15 2.89543 15 4V5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <span>{t('copyUrl')}</span>
           </button>
         </div>
       )}

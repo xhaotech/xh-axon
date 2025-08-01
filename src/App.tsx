@@ -8,7 +8,7 @@ import { StatusBar } from './components/StatusBar';
 import { useAppStore } from './store/useAppStore';
 
 function App() {
-  const { sidebarCollapsed, auth, testBackendConnection, initializeAuth, loadRequestHistory, loadFavoriteRequests } = useAppStore();
+  const { sidebarCollapsed, auth, testBackendConnection, initializeAuth, loadRequestHistory, loadFavoriteRequests, initializeData } = useAppStore();
   const [isInitializing, setIsInitializing] = useState(true);
 
   // 初始化应用状态
@@ -16,6 +16,8 @@ function App() {
     const initApp = async () => {
       // 恢复认证状态
       initializeAuth();
+      // 初始化本地数据
+      initializeData();
       // 测试后端连接
       const isBackendHealthy = await testBackendConnection();
       // 如果后端可用且用户已登录，加载保存的数据
@@ -30,7 +32,7 @@ function App() {
     };
     
     initApp();
-  }, [initializeAuth, testBackendConnection, loadRequestHistory, loadFavoriteRequests, auth.isAuthenticated]);
+  }, [initializeAuth, initializeData, testBackendConnection, loadRequestHistory, loadFavoriteRequests, auth.isAuthenticated]);
 
   // 显示加载状态
   if (isInitializing) {
@@ -54,41 +56,41 @@ function App() {
 
   return (
     <div className="h-screen flex flex-col bg-white">
-    <Header />
-    <div className="flex flex-1 overflow-hidden">
-      <Sidebar />
-      <div className={`flex-1 transition-all duration-200 ${
-        sidebarCollapsed ? 'ml-0' : 'ml-72'
-      }`}>
-        <MainPanel />
+      <Header />
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar />
+        <div className={`flex-1 transition-all duration-200 ${
+          sidebarCollapsed ? 'ml-0' : 'ml-72'
+        }`}>
+          <MainPanel />
+        </div>
       </div>
-    </div>
-    <StatusBar />
-    <Toaster
-      position="top-center"
-      toastOptions={{
-        duration: 3000,
-        style: {
-          background: '#363636',
-          color: '#fff',
-          fontSize: '14px',
-          textAlign: 'center',
-          minWidth: '300px',
-        },
-        success: {
+      <StatusBar />
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          duration: 3000,
           style: {
-            background: '#059669',
+            background: '#363636',
             color: '#fff',
+            fontSize: '14px',
+            textAlign: 'center',
+            minWidth: '300px',
           },
-        },
-        error: {
-          style: {
-            background: '#dc2626',
-            color: '#fff',
+          success: {
+            style: {
+              background: '#059669',
+              color: '#fff',
+            },
           },
-        },
-      }}
-    />
+          error: {
+            style: {
+              background: '#dc2626',
+              color: '#fff',
+            },
+          },
+        }}
+      />
     </div>
   );
 }

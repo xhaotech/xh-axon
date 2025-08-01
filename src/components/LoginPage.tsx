@@ -3,7 +3,12 @@ import { Eye, EyeOff, Mail, Phone, Lock, User, ArrowRight, UserPlus } from 'luci
 import { useAppStore } from '../store/useAppStore';
 import { validateUserLogin, validatePhoneLogin, demoUsers } from '../lib/auth';
 import { httpClient } from '../lib/httpClient';
+import { createTranslator, getDefaultLanguage } from '../lib/i18n';
 import toast from 'react-hot-toast';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Card, CardContent, CardHeader } from './ui/card';
 
 type LoginMethod = 'username' | 'phone';
 type AuthMode = 'login' | 'register';
@@ -14,6 +19,7 @@ export const LoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const t = createTranslator(getDefaultLanguage());
   
   const { login } = useAppStore();
   
@@ -48,13 +54,13 @@ export const LoginPage: React.FC = () => {
       console.log('Direct fetch result:', { response, data });
       
       if (response.ok) {
-        toast.success(`后端连接成功！\n状态: ${data.status}\n时间: ${data.timestamp}`);
+        toast.success(`${t('backendConnectSuccess')}\n状态: ${data.status}\n时间: ${data.timestamp}`);
       } else {
-        toast.error('后端连接失败！状态码: ' + response.status);
+        toast.error(t('backendConnectFailed') + response.status);
       }
     } catch (error) {
       console.error('Backend test error:', error);
-      toast.error('后端连接测试失败！错误: ' + (error as Error).message);
+      toast.error(t('backendTestFailed') + (error as Error).message);
     }
     
     // 同时测试 httpClient
@@ -69,7 +75,7 @@ export const LoginPage: React.FC = () => {
   // 发送验证码
   const handleSendVerificationCode = async () => {
     if (!phoneForm.phone) {
-      toast.error('请输入手机号');
+      toast.error(t('phoneRequired'));
       return;
     }
     
@@ -90,9 +96,9 @@ export const LoginPage: React.FC = () => {
         });
       }, 1000);
       
-      toast.success('验证码已发送');
+      toast.success(t('verificationCodeSent'));
     } catch (error) {
-      toast.error('发送验证码失败，请重试');
+      toast.error(t('sendCodeFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -229,63 +235,62 @@ export const LoginPage: React.FC = () => {
         </div>
 
         {/* 登录卡片 */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          {/* 登录/注册模式切换 */}
-          <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
-            <button
-              type="button"
-              onClick={() => setAuthMode('login')}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                authMode === 'login'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <User className="w-4 h-4 inline-block mr-2" />
-              登录
-            </button>
-            <button
-              type="button"
-              onClick={() => setAuthMode('register')}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                authMode === 'register'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <UserPlus className="w-4 h-4 inline-block mr-2" />
-              注册
-            </button>
-          </div>
+        <Card className="shadow-xl">
+          <CardHeader className="text-center pb-4">
+            {/* 登录/注册模式切换 */}
+            <div className="flex bg-gray-100 rounded-lg p-1 mb-4">
+              <Button
+                type="button"
+                variant={authMode === 'login' ? 'default' : 'ghost'}
+                onClick={() => setAuthMode('login')}
+                className={`flex-1 h-10 text-sm font-medium rounded-md ${
+                  authMode === 'login' ? 'bg-white text-gray-900 shadow-sm hover:bg-white' : 'bg-transparent'
+                }`}
+              >
+                <User className="w-4 h-4 mr-2" />
+                登录
+              </Button>
+              <Button
+                type="button"
+                variant={authMode === 'register' ? 'default' : 'ghost'}
+                onClick={() => setAuthMode('register')}
+                className={`flex-1 h-10 text-sm font-medium rounded-md ${
+                  authMode === 'register' ? 'bg-white text-gray-900 shadow-sm hover:bg-white' : 'bg-transparent'
+                }`}
+              >
+                <UserPlus className="w-4 h-4 mr-2" />
+                注册
+              </Button>
+            </div>
+          </CardHeader>
 
+          <CardContent>
           {authMode === 'login' ? (
             <>
               {/* 登录方式切换 */}
               <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
-                <button
+                <Button
                   type="button"
+                  variant={loginMethod === 'username' ? 'default' : 'ghost'}
                   onClick={() => setLoginMethod('username')}
-                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                    loginMethod === 'username'
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
+                  className={`flex-1 h-10 text-sm font-medium rounded-md ${
+                    loginMethod === 'username' ? 'bg-white text-gray-900 shadow-sm hover:bg-white' : 'bg-transparent'
                   }`}
                 >
-                  <User className="w-4 h-4 inline-block mr-2" />
+                  <User className="w-4 h-4 mr-2" />
                   用户名
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant={loginMethod === 'phone' ? 'default' : 'ghost'}
                   onClick={() => setLoginMethod('phone')}
-                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                    loginMethod === 'phone'
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
+                  className={`flex-1 h-10 text-sm font-medium rounded-md ${
+                    loginMethod === 'phone' ? 'bg-white text-gray-900 shadow-sm hover:bg-white' : 'bg-transparent'
                   }`}
                 >
-                  <Phone className="w-4 h-4 inline-block mr-2" />
+                  <Phone className="w-4 h-4 mr-2" />
                   手机号
-                </button>
+                </Button>
               </div>
             </>
           ) : (
@@ -453,7 +458,8 @@ export const LoginPage: React.FC = () => {
               <a href="#" className="text-blue-600 hover:text-blue-700">隐私政策</a>
             </div>
           </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* 演示账号提示 */}
         <div className="mt-6 bg-white/70 backdrop-blur-sm rounded-lg p-4 text-sm text-gray-600">
@@ -468,12 +474,13 @@ export const LoginPage: React.FC = () => {
 
         {/* 测试按钮 */}
         <div className="mt-4 text-center">
-          <button
+          <Button
+            variant="outline"
             onClick={handleTestBackend}
-            className="text-sm text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg transition-colors"
+            className="text-sm text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100"
           >
             🔧 测试后端连接
-          </button>
+          </Button>
         </div>
       </div>
     </div>

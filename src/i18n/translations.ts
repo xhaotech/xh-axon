@@ -185,12 +185,18 @@ export const translations = {
     },
     // 标签页菜单
     tabs: {
+      newRequest: '新请求',
+      scrollLeft: '向左滚动',
+      scrollRight: '向右滚动',
+      newTab: '新建标签页',
+      tabOptions: '标签页选项',
       closeTab: '关闭标签',
       closeOthers: '关闭其他标签',
       closeToRight: '关闭右侧标签',
       closeToLeft: '关闭左侧标签',
       closeSaved: '关闭已保存标签',
       closeAll: '关闭所有标签',
+      copyUrl: '复制 URL',
     }
   },
   en: {
@@ -380,12 +386,18 @@ export const translations = {
     },
     // Tab menu
     tabs: {
+      newRequest: 'New Request',
+      scrollLeft: 'Scroll Left',
+      scrollRight: 'Scroll Right',
+      newTab: 'New Tab',
+      tabOptions: 'Tab Options',
       closeTab: 'Close Tab',
       closeOthers: 'Close Others',
       closeToRight: 'Close to Right',
       closeToLeft: 'Close to Left',
       closeSaved: 'Close Saved',
       closeAll: 'Close All',
+      copyUrl: 'Copy URL',
     }
   }
 } as const;

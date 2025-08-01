@@ -4,15 +4,20 @@ import Editor from '@monaco-editor/react';
 import toast from 'react-hot-toast';
 import { useAppStore } from '../store/useAppStore';
 import { httpClient } from '../lib/httpClient';
+import { createTranslator, getDefaultLanguage } from '../lib/i18n';
 import type { HttpMethod } from '../store/useAppStore';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 interface RequestBuilderProps {
   tabId: string;
 }
 
 const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
-  const { tabs, updateTab, saveTab, addTabToFavorites, addToHistory } = useAppStore();
+  const { tabs, updateTab, saveTab, addTabToFavorites, addToHistory, auth } = useAppStore();
   const tab = tabs.find(t => t.id === tabId);
+  const t = createTranslator(getDefaultLanguage());
   const [isLoading, setIsLoading] = useState(false);
   const [activeSection, setActiveSection] = useState<'params' | 'headers' | 'body' | 'auth'>('params');
   const [upperHeight, setUpperHeight] = useState(50);
@@ -34,7 +39,7 @@ const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
 
   const handleSendRequest = async () => {
     if (!tab.url.trim()) {
-      toast.error('请输入请求URL');
+      toast.error(t('urlRequired'));
       return;
     }
 
@@ -69,6 +74,7 @@ const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
 
       const historyItem = {
         id: Date.now().toString(),
+        userId: auth.user?.id || 'default',
         url: tab.url,
         method: tab.method,
         headers: tab.headers || {},
@@ -90,6 +96,7 @@ const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
       
       const historyItem = {
         id: Date.now().toString(),
+        userId: auth.user?.id || 'default',
         url: tab.url,
         method: tab.method,
         headers: tab.headers || {},
@@ -112,7 +119,7 @@ const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
 
   const handleSaveRequest = async () => {
     if (!tab.url.trim()) {
-      toast.error('请输入请求URL才能保存');
+      toast.error(t('urlRequiredToSave'));
       return;
     }
     
@@ -129,17 +136,17 @@ const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
       
       if (response.success) {
         saveTab(tabId);
-        toast.success('请求已保存到后端！');
+        toast.success(t('requestSaved'));
       }
     } catch (error) {
       console.error('Save failed:', error);
-      toast.error('保存失败，请重试');
+      toast.error(t('saveFailed'));
     }
   };
 
   const handleAddToFavorites = async () => {
     if (!tab.url.trim()) {
-      toast.error('请输入请求URL才能收藏');
+      toast.error(t('urlRequiredToFavorite'));
       return;
     }
     
@@ -156,11 +163,11 @@ const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
       
       if (response.success) {
         addTabToFavorites(tabId);
-        toast.success('已添加到收藏！');
+        toast.success(t('addedToFavorites'));
       }
     } catch (error) {
       console.error('Add to favorites failed:', error);
-      toast.error('添加收藏失败，请重试');
+      toast.error(t('addToFavoritesFailed'));
     }
   };
 
@@ -348,45 +355,51 @@ const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
       <div className="bg-white p-2 border-b border-gray-200">
         {/* URL Input Row */}
         <div className="flex items-center space-x-1 mb-2">
-          <select
-            value={tab.method}
-            onChange={(e) => handleMethodChange(e.target.value)}
-            className="px-1 py-1 border border-gray-300 text-xs font-bold text-blue-600 bg-blue-50 focus:outline-none focus:border-blue-500 min-w-16"
-          >
-            {(['GET', 'POST', 'PUT', 'DELETE', 'PATCH'] as const).map(method => (
-              <option key={method} value={method}>{method}</option>
-            ))}
-          </select>
+          <Select value={tab.method} onValueChange={handleMethodChange}>
+            <SelectTrigger className="w-20 h-8 text-xs font-bold text-blue-600 bg-blue-50 border-gray-300">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(['GET', 'POST', 'PUT', 'DELETE', 'PATCH'] as const).map(method => (
+                <SelectItem key={method} value={method} className="text-xs">{method}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           
-          <input
+          <Input
             type="text"
             value={tab.url}
             onChange={(e) => handleUrlChange(e.target.value)}
             placeholder="Enter URL"
-            className="flex-1 px-2 py-1 border border-gray-300 focus:outline-none focus:border-blue-500 text-xs"
+            className="flex-1 h-8 text-xs"
           />
           
-          <button
+          <Button
             onClick={handleSendRequest}
             disabled={isLoading}
-            className="bg-blue-500 text-white px-3 py-1 text-xs font-medium hover:bg-blue-600 transition-colors disabled:opacity-50"
+            size="sm"
+            className="h-8 text-xs font-medium"
           >
             {isLoading ? 'Sending...' : 'Send'}
-          </button>
+          </Button>
           
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleSaveRequest}
-            className="p-1 text-gray-400 hover:text-gray-600 border border-gray-300 transition-colors"
+            className="h-8 w-8 p-0"
           >
             <Save size={12} />
-          </button>
+          </Button>
           
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleAddToFavorites}
-            className="p-1 text-gray-400 hover:text-yellow-500 border border-gray-300 transition-colors"
+            className="h-8 w-8 p-0 hover:text-yellow-500"
           >
             <Star size={12} />
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -404,17 +417,21 @@ const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
               { id: 'body', label: 'Body' },
               { id: 'auth', label: 'Authorization' }
             ].map((section) => (
-              <button
+              <Button
                 key={section.id}
+                variant={activeSection === section.id ? "default" : "ghost"}
+                size="sm"
                 onClick={() => setActiveSection(section.id as any)}
-                className={`px-2 py-1 text-xs font-medium transition-colors ${
-                  activeSection === section.id
-                    ? 'border-b-2 border-blue-500 text-blue-600 bg-white'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                }`}
+                className={`
+                  rounded-none border-b-2 border-transparent h-8 text-xs font-medium
+                  ${activeSection === section.id
+                    ? 'border-b-blue-500 text-blue-600 bg-white hover:bg-white'
+                    : 'bg-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                  }
+                `}
               >
                 {section.label}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
@@ -430,12 +447,14 @@ const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                   <span className="text-xs font-medium text-gray-600">Query Params</span>
                 </div>
                 <div className="flex items-center space-x-1">
-                  <button
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onClick={() => setParamsEditMode(paramsEditMode === 'key-value' ? 'bulk' : 'key-value')}
-                    className="px-2 py-1 text-xs bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors"
+                    className="h-7 text-xs"
                   >
                     {paramsEditMode === 'key-value' ? 'Bulk Edit' : 'Key-Value Edit'}
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -448,7 +467,7 @@ const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                   </div>
                   {(Object.entries(tab.params || {})).map(([key, value], index) => (
                     <div key={index} className="grid grid-cols-3 gap-1 items-center group">
-                      <input
+                      <Input
                         type="text"
                         value={key}
                         onChange={(e) => {
@@ -459,10 +478,10 @@ const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                           }
                           updateTab(tabId, { params: newParams });
                         }}
-                        className="px-1 py-1 border border-gray-300 text-xs focus:outline-none focus:border-blue-500"
+                        className="h-8 text-xs"
                         placeholder="Key"
                       />
-                      <input
+                      <Input
                         type="text"
                         value={value}
                         onChange={(e) => {
@@ -470,19 +489,21 @@ const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
                           newParams[key] = e.target.value;
                           updateTab(tabId, { params: newParams });
                         }}
-                        className="px-1 py-1 border border-gray-300 text-xs focus:outline-none focus:border-blue-500"
+                        className="h-8 text-xs"
                         placeholder="Value"
                       />
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => {
                           const newParams = { ...tab.params };
                           delete newParams[key];
                           updateTab(tabId, { params: newParams });
                         }}
-                        className="text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity justify-self-center text-xs"
+                        className="h-8 w-8 p-0 text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100"
                       >
                         ×
-                      </button>
+                      </Button>
                     </div>
                   ))}
                   <div className="grid grid-cols-3 gap-1 items-center">

@@ -11,11 +11,9 @@ export const i18n = {
     closeRight: '关闭右侧',
     closeLeft: '关闭左侧',
     closeSaved: '关闭已保存',
-    copyUrl: '复制 URL',
     rename: '重命名',
     newRequest: '新请求',
     enterTabName: '请输入标签页名称',
-    tabOptions: '标签页选项',
     
     // Header
     httpApiClient: 'HTTP API 客户端',
@@ -28,15 +26,10 @@ export const i18n = {
     // Sidebar
     history: '历史记录',
     favorites: '收藏夹',
-    collections: '请求集合',
     environments: '环境变量',
     noHistory: '暂无历史记录',
     noFavorites: '暂无收藏请求',
-    noCollections: '暂无请求集合',
     noEnvironments: '暂无环境配置',
-    searchHistory: '搜索历史记录...',
-    searchFavorites: '搜索收藏...',
-    searchCollections: '搜索集合...',
     
     // RequestBuilder
     method: '请求方法',
@@ -55,7 +48,6 @@ export const i18n = {
     
     // Common
     save: '保存',
-    create: '创建',
     cancel: '取消',
     delete: '删除',
     edit: '编辑',
@@ -67,48 +59,7 @@ export const i18n = {
     warning: '警告',
     info: '信息',
     
-    // Error messages
-    urlRequired: '请输入请求URL',
-    urlRequiredToSave: '请输入请求URL才能保存', 
-    urlRequiredToFavorite: '请输入请求URL才能收藏',
-    requestSaved: '请求已保存到后端！',
-    saveFailed: '保存失败，请重试',
-    addedToFavorites: '已添加到收藏！',
-    addToFavoritesFailed: '添加收藏失败，请重试',
-    // LoginPage
-    phoneRequired: '请输入手机号',
-    verificationCodeSent: '验证码已发送',
-    sendCodeFailed: '发送验证码失败，请重试',
-    backendConnectSuccess: '后端连接成功！',
-    backendConnectFailed: '后端连接失败！状态码: ',
-    backendTestFailed: '后端连接测试失败！错误: ',
-    // Storage & Data Management
-    exportData: '导出数据',
-    importData: '导入数据',
-    clearAllData: '清除所有数据',
-    dataExported: '数据已导出到剪贴板',
-    dataImported: '数据导入成功',
-    dataCleared: '所有数据已清除',
-    importFailed: '数据导入失败',
-    confirmClearData: '确定要清除所有本地数据吗？此操作不可撤销。',
-    storageUsage: '存储使用情况',
-    // Collections Management
-    newCollection: '新建集合',
-    newFolder: '新建文件夹',
-    collectionName: '集合名称',
-    folderName: '文件夹名称',
-    addToCollection: '添加到集合',
-    moveToFolder: '移动到文件夹',
-    createFolder: '创建文件夹',
-    deleteCollection: '删除集合',
-    deleteFolder: '删除文件夹',
-    renameCollection: '重命名集合',
-    renameFolder: '重命名文件夹',
-    expandAll: '展开全部',
-    collapseAll: '收起全部',
-    collectionCreated: '集合创建成功',
-    folderCreated: '文件夹创建成功',
-    itemMoved: '项目移动成功',    // Main Panel
+    // Main Panel
     welcome: '欢迎使用 XH Axon',
     welcomeDescription: '强大的 HTTP API 测试工具，让API测试更简单',
     createNewRequest: '创建新请求',
@@ -119,7 +70,7 @@ export const i18n = {
     signOut: '退出',
     
     // Login
-    loginTitle: 'XH Axon',
+    title: 'XH Axon',
     subtitle: '专业的 HTTP API 测试工具',
     loginTab: '登录',
     registerTab: '注册',
@@ -131,9 +82,11 @@ export const i18n = {
     backendConnected: '后端连接正常',
     backendDisconnected: '后端连接失败',
     backendError: '后端连接错误',
+    phoneRequired: '请输入手机号',
+    codeSent: '验证码已发送',
+    sendCodeFailed: '发送验证码失败',
     
     // Settings
-    settingsTitle: '设置',
     profile: '个人资料',
     preferences: '偏好设置',
     security: '安全设置',
@@ -160,11 +113,9 @@ export const i18n = {
     closeRight: 'Close Right',
     closeLeft: 'Close Left',
     closeSaved: 'Close Saved',
-    copyUrl: 'Copy URL',
     rename: 'Rename',
     newRequest: 'New Request',
     enterTabName: 'Enter tab name',
-    tabOptions: 'Tab Options',
     
     // Header
     httpApiClient: 'HTTP API Client',
@@ -177,24 +128,19 @@ export const i18n = {
     // Sidebar
     history: 'History',
     favorites: 'Favorites',
-    collections: 'Collections',
     environments: 'Environments',
-    noHistory: 'No history records',
-    noFavorites: 'No favorite requests',
-    noCollections: 'No collections',
-    noEnvironments: 'No environment configurations',
-    searchHistory: 'Search history...',
-    searchFavorites: 'Search favorites...',
-    searchCollections: 'Search collections...',
+    noHistory: 'No history yet',
+    noFavorites: 'No favorites yet',
+    noEnvironments: 'No environments yet',
     
     // RequestBuilder
     method: 'Method',
     url: 'URL',
-    send: 'Send Request',
-    params: 'Query Params',
+    send: 'Send',
+    params: 'Params',
     headers: 'Headers',
     body: 'Body',
-    auth: 'Authorization',
+    auth: 'Auth',
     none: 'None',
     bearerToken: 'Bearer Token',
     basicAuth: 'Basic Auth',
@@ -204,7 +150,6 @@ export const i18n = {
     
     // Common
     save: 'Save',
-    create: 'Create',
     cancel: 'Cancel',
     delete: 'Delete',
     edit: 'Edit',
@@ -215,49 +160,6 @@ export const i18n = {
     success: 'Success',
     warning: 'Warning',
     info: 'Info',
-    
-    // Error messages
-    urlRequired: 'Please enter request URL',
-    urlRequiredToSave: 'Please enter request URL to save',
-    urlRequiredToFavorite: 'Please enter request URL to favorite',
-    requestSaved: 'Request saved to backend!',
-    saveFailed: 'Save failed, please try again',
-    addedToFavorites: 'Added to favorites!',
-    addToFavoritesFailed: 'Failed to add to favorites, please try again',
-    // LoginPage
-    phoneRequired: 'Please enter phone number',
-    verificationCodeSent: 'Verification code sent',
-    sendCodeFailed: 'Failed to send verification code, please try again',
-    backendConnectSuccess: 'Backend connection successful!',
-    backendConnectFailed: 'Backend connection failed! Status code: ',
-    backendTestFailed: 'Backend connection test failed! Error: ',
-    // Storage & Data Management
-    exportData: 'Export Data',
-    importData: 'Import Data',
-    clearAllData: 'Clear All Data',
-    dataExported: 'Data exported to clipboard',
-    dataImported: 'Data imported successfully',
-    dataCleared: 'All data cleared',
-    importFailed: 'Data import failed',
-    confirmClearData: 'Are you sure you want to clear all local data? This action cannot be undone.',
-    storageUsage: 'Storage Usage',
-    // Collections Management
-    newCollection: 'New Collection',
-    newFolder: 'New Folder',
-    collectionName: 'Collection Name',
-    folderName: 'Folder Name',
-    addToCollection: 'Add to Collection',
-    moveToFolder: 'Move to Folder',
-    createFolder: 'Create Folder',
-    deleteCollection: 'Delete Collection',
-    deleteFolder: 'Delete Folder',
-    renameCollection: 'Rename Collection',
-    renameFolder: 'Rename Folder',
-    expandAll: 'Expand All',
-    collapseAll: 'Collapse All',
-    collectionCreated: 'Collection created successfully',
-    folderCreated: 'Folder created successfully',
-    itemMoved: 'Item moved successfully',
     
     // Main Panel
     welcome: 'Welcome to XH Axon',
@@ -270,7 +172,7 @@ export const i18n = {
     signOut: 'Sign Out',
     
     // Login
-    loginTitle: 'XH Axon',
+    title: 'XH Axon',
     subtitle: 'Professional HTTP API Testing Tool',
     loginTab: 'Login',
     registerTab: 'Register',
@@ -282,9 +184,11 @@ export const i18n = {
     backendConnected: 'Backend Connected',
     backendDisconnected: 'Backend Disconnected',
     backendError: 'Backend Connection Error',
+    phoneRequired: 'Phone number required',
+    codeSent: 'Code sent',
+    sendCodeFailed: 'Failed to send code',
     
     // Settings
-    settingsTitle: 'Settings',
     profile: 'Profile',
     preferences: 'Preferences',
     security: 'Security',
@@ -316,29 +220,4 @@ export const createTranslator = (language: Language) => {
 export const getDefaultLanguage = (): Language => {
   const saved = localStorage.getItem('language') as Language;
   return saved && (saved === 'zh' || saved === 'en') ? saved : 'zh';
-};
-
-// React Hook for translation
-import { create } from 'zustand';
-
-interface LanguageState {
-  language: Language;
-  setLanguage: (lang: Language) => void;
-}
-
-export const useLanguageStore = create<LanguageState>((set) => ({
-  language: getDefaultLanguage(),
-  setLanguage: (language: Language) => {
-    localStorage.setItem('language', language);
-    set({ language });
-  },
-}));
-
-export const useTranslation = () => {
-  const { language, setLanguage } = useLanguageStore();
-  return {
-    t: createTranslator(language),
-    language,
-    setLanguage,
-  };
 };
