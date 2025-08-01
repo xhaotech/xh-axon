@@ -43,9 +43,9 @@ export const Sidebar: React.FC = () => {
   if (sidebarCollapsed) return null;
 
   const tabs = [
+    { id: 'collections', label: t('collections'), icon: Folder },
     { id: 'history', label: t('history'), icon: History },
     { id: 'favorites', label: t('favorites'), icon: Star },
-    { id: 'collections', label: t('collections'), icon: Folder },
   ];
 
   return (
@@ -86,6 +86,17 @@ export const Sidebar: React.FC = () => {
 
       {/* Content */}
       <div className="flex-1 overflow-hidden">
+        {/* Collections Panel */}
+        {activePanel === 'collections' && (
+          <div className="h-full">
+            <CollectionTreeEnhanced 
+              miniMode={true}
+              showBatchOperations={true}
+              enableDragDrop={true}
+            />
+          </div>
+        )}
+
         {/* History Panel */}
         {activePanel === 'history' && (
           <div className="h-full flex flex-col">
@@ -263,17 +274,6 @@ export const Sidebar: React.FC = () => {
                 </div>
               )}
             </div>
-          </div>
-        )}
-
-        {/* Collections Panel */}
-        {activePanel === 'collections' && (
-          <div className="h-full">
-            <CollectionTreeEnhanced 
-              miniMode={true}
-              showBatchOperations={true}
-              enableDragDrop={true}
-            />
           </div>
         )}
       </div>

@@ -25,8 +25,9 @@ export const RequestTabs: React.FC = () => {
     
     const { scrollLeft, scrollWidth, clientWidth } = container;
     
-    const newCanScrollLeft = scrollLeft > 0;
-    const newCanScrollRight = scrollLeft < scrollWidth - clientWidth;
+    // 增加容错性，添加1px的容差
+    const newCanScrollLeft = scrollLeft > 1;
+    const newCanScrollRight = scrollLeft < scrollWidth - clientWidth - 1;
     
     // 添加调试信息
     console.log('Scroll状态:', {
@@ -34,7 +35,8 @@ export const RequestTabs: React.FC = () => {
       scrollWidth,
       clientWidth,
       canScrollLeft: newCanScrollLeft,
-      canScrollRight: newCanScrollRight
+      canScrollRight: newCanScrollRight,
+      diff: scrollWidth - clientWidth
     });
     
     setCanScrollLeft(newCanScrollLeft);
@@ -46,8 +48,14 @@ export const RequestTabs: React.FC = () => {
     const container = scrollContainerRef.current;
     if (!container) return;
     
-    // 初始检查
-    checkScrollButtons();
+    // 初始检查 - 延迟执行确保DOM完全渲染
+    const initialCheck = () => {
+      checkScrollButtons();
+      // 再次检查，确保状态正确
+      setTimeout(checkScrollButtons, 500);
+    };
+    
+    setTimeout(initialCheck, 50);
     
     // 滚动事件监听
     const handleScroll = () => checkScrollButtons();
@@ -59,15 +67,27 @@ export const RequestTabs: React.FC = () => {
     };
     window.addEventListener('resize', handleResize);
     
+    // 监听容器内容变化
+    const resizeObserver = new ResizeObserver(() => {
+      setTimeout(checkScrollButtons, 100);
+    });
+    resizeObserver.observe(container);
+    
     return () => {
       container.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleResize);
+      resizeObserver.disconnect();
     };
   }, []);
 
   // 标签页变化时检查
   useEffect(() => {
-    const timer = setTimeout(checkScrollButtons, 100);
+    const timer = setTimeout(() => {
+      checkScrollButtons();
+      // 强制刷新一次，确保滚动按钮状态正确
+      const timer2 = setTimeout(checkScrollButtons, 300);
+      return () => clearTimeout(timer2);
+    }, 100);
     return () => clearTimeout(timer);
   }, [tabs]);
 
@@ -78,9 +98,12 @@ export const RequestTabs: React.FC = () => {
     if (!container) return;
     
     container.scrollBy({
-      left: -150, // Mini模式：更小的滚动距离
+      left: -120, // 调整滚动距离，适应Tab宽度
       behavior: 'smooth'
     });
+    
+    // 延迟检查滚动状态
+    setTimeout(checkScrollButtons, 200);
   };
 
   const handleScrollRight = () => {
@@ -89,9 +112,12 @@ export const RequestTabs: React.FC = () => {
     if (!container) return;
     
     container.scrollBy({
-      left: 150, // Mini模式：更小的滚动距离
+      left: 120, // 调整滚动距离，适应Tab宽度
       behavior: 'smooth'
     });
+    
+    // 延迟检查滚动状态
+    setTimeout(checkScrollButtons, 200);
   };
 
   // 滚动到指定标签页
@@ -296,13 +322,13 @@ export const RequestTabs: React.FC = () => {
         <ChevronLeft size={10} />
       </Button>
       
-      {/* 滚动容器 - Mini模式：更紧凑的宽度计算 */}
+      {/* 滚动容器 - 优化宽度计算 */}
       <div 
         ref={scrollContainerRef}
         className="overflow-x-auto overflow-y-hidden scrollbar-hide h-full"
         style={{ 
           scrollBehavior: 'smooth',
-          width: 'calc(100% - 72px)', // 减去左右按钮和新建按钮的宽度
+          width: 'calc(100% - 18px)', // 减去左右按钮的宽度 (6px * 3 = 18px)
           minWidth: '0px'
         }}
       >
@@ -318,16 +344,16 @@ export const RequestTabs: React.FC = () => {
                   : 'hover:bg-gray-100 text-gray-700'
               }`}
               style={{
-                minWidth: '60px',   // Mini模式：更小的最小宽度
-                maxWidth: '120px',  // Mini模式：更小的最大宽度
+                minWidth: '80px',   // 增加最小宽度，确保内容显示完整
+                maxWidth: '150px',  // 增加最大宽度
                 width: 'auto'
               }}
               onClick={() => setActiveTab(tab.id)}
               onContextMenu={(e) => handleTabContextMenu(e, tab.id)}
             >
-              {/* HTTP方法标签 - Mini模式 */}
-              <span className={`text-xs font-bold px-1 py-0.5 flex-shrink-0 rounded text-center min-w-6 ${getMethodColor(tab.method)}`}>
-                {tab.method.substring(0, 3)} {/* 只显示前3个字符 */}
+              {/* HTTP方法标签 - 优化显示 */}
+              <span className={`text-xs font-bold px-1 py-0.5 flex-shrink-0 rounded text-center min-w-7 ${getMethodColor(tab.method)}`}>
+                {tab.method.length > 4 ? tab.method.substring(0, 3) : tab.method}
               </span>
               
               {/* 标签名称 - Mini模式，支持重命名 */}
@@ -341,8 +367,8 @@ export const RequestTabs: React.FC = () => {
                   onKeyDown={(e) => handleRenameKeyDown(e, tab.id)}
                   className="text-xs h-5 border-blue-400 px-1 py-0 flex-1 min-w-0 font-medium focus:ring-1 focus:ring-blue-500"
                   style={{ 
-                    minWidth: '15px',
-                    maxWidth: '60px'
+                    minWidth: '20px',
+                    maxWidth: '80px'
                   }}
                   placeholder={t('enterTabName')}
                 />
@@ -351,12 +377,12 @@ export const RequestTabs: React.FC = () => {
                   className="text-xs truncate flex-1 min-w-0 font-medium cursor-pointer" 
                   title={tab.name}
                   style={{ 
-                    minWidth: '15px',
-                    maxWidth: '60px'
+                    minWidth: '20px',
+                    maxWidth: '80px'
                   }}
                   onDoubleClick={() => handleStartRename(tab.id, tab.name)}
                 >
-                  {tab.name.length > 8 ? tab.name.substring(0, 8) + '...' : tab.name}
+                  {tab.name.length > 12 ? tab.name.substring(0, 12) + '...' : tab.name}
                 </span>
               )}
               

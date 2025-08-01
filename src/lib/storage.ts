@@ -138,7 +138,7 @@ class StorageManager {
   }
 
   loadActivePanel(): 'history' | 'favorites' | 'collections' | 'environments' {
-    return this.getItem(STORAGE_KEYS.ACTIVE_PANEL, 'history') as 'history' | 'favorites' | 'collections' | 'environments';
+    return this.getItem(STORAGE_KEYS.ACTIVE_PANEL, 'collections') as 'history' | 'favorites' | 'collections' | 'environments';
   }
 
   // 语言设置存储
