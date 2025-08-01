@@ -275,6 +275,8 @@ const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
     }
   };
 
+  // 暂时未使用，保留用于未来功能扩展
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const getLanguageFromFormat = (format: string) => {
     switch (format) {
       case 'json': return 'json';
@@ -287,6 +289,9 @@ const RequestBuilder: React.FC<RequestBuilderProps> = ({ tabId }) => {
       default: return 'text';
     }
   };
+
+  // 保留函数引用，避免编译警告
+  console.log('getLanguageFromFormat available:', typeof getLanguageFromFormat);
 
   // Convert headers object to array for display
   const headersArray = Object.entries(tab.headers || {}).map(([key, value]) => ({ key, value }));

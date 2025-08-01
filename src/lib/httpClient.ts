@@ -291,7 +291,7 @@ class HttpClient {
   // 批量删除历史记录
   async batchDeleteHistory(ids: string[]): Promise<ApiResponse> {
     try {
-      const response = await this.delete('/api/history', { ids });
+      const response = await this.delete('/api/history', { data: { ids } });
       return response;
     } catch (error) {
       console.error('Batch delete history failed:', error);

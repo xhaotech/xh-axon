@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, EyeOff, Mail, Phone, Lock, User, ArrowRight, Loader2, Wifi, WifiOff, CheckCircle, XCircle, AlertCircle, Smartphone } from 'lucide-react';
+import { Eye, EyeOff, Mail, Phone, Lock, User, ArrowRight, Loader2, WifiOff, CheckCircle, AlertCircle } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { httpClient } from '../lib/httpClient';
 import { VerificationCodeInput } from './VerificationCodeInput';

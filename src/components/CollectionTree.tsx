@@ -288,7 +288,7 @@ const CollectionTreeItem: React.FC<CollectionTreeItemProps> = ({
             </DropdownMenuItem>
             <DropdownMenuItem>
               <Move className="h-3 w-3 mr-1" />
-              {t('move')}
+              {t('moveCollection')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive">
@@ -315,7 +315,7 @@ const CollectionTreeItem: React.FC<CollectionTreeItemProps> = ({
           
           {/* 请求项 - Mini风格 */}
           {collection.requests?.map((request) => (
-            <RequestItem
+            <RequestTreeItem
               key={request.id}
               request={request}
               level={level + 1}

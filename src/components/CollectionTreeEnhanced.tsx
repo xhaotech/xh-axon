@@ -35,15 +35,15 @@ import { useAppStore } from '@/store/useAppStore';
 import { Collection, ApiRequest } from '@/types/collection';
 import { createTranslator, getDefaultLanguage } from '@/lib/i18n';
 
-// Mini风格的HTTP方法颜色配置
+// 美化的HTTP方法颜色配置
 const HTTP_METHOD_COLORS: Record<string, string> = {
-  GET: 'bg-green-50 text-green-700 border-green-200',
-  POST: 'bg-blue-50 text-blue-700 border-blue-200', 
-  PUT: 'bg-orange-50 text-orange-700 border-orange-200',
-  DELETE: 'bg-red-50 text-red-700 border-red-200',
-  PATCH: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-  HEAD: 'bg-gray-50 text-gray-700 border-gray-200',
-  OPTIONS: 'bg-purple-50 text-purple-700 border-purple-200'
+  GET: 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm',
+  POST: 'bg-blue-50 text-blue-700 border-blue-200 shadow-sm', 
+  PUT: 'bg-amber-50 text-amber-700 border-amber-200 shadow-sm',
+  DELETE: 'bg-red-50 text-red-700 border-red-200 shadow-sm',
+  PATCH: 'bg-violet-50 text-violet-700 border-violet-200 shadow-sm',
+  HEAD: 'bg-gray-50 text-gray-700 border-gray-200 shadow-sm',
+  OPTIONS: 'bg-indigo-50 text-indigo-700 border-indigo-200 shadow-sm'
 };
 
 interface CollectionTreeEnhancedProps {
@@ -582,7 +582,6 @@ export const CollectionTreeEnhanced: React.FC<CollectionTreeEnhancedProps> = ({
     collapseCollection
   } = useCollectionStore();
   
-  const t = createTranslator(getDefaultLanguage());
   const [isCreating, setIsCreating] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState('');
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
@@ -647,122 +646,221 @@ export const CollectionTreeEnhanced: React.FC<CollectionTreeEnhancedProps> = ({
     collection.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const searchBarHeight = miniMode ? 'h-5' : 'h-7';
-  const buttonHeight = miniMode ? 'h-5' : 'h-7';
-  const textSize = miniMode ? 'text-[10px]' : 'text-xs';
-
   return (
-    <div className="h-full flex flex-col">
-      {/* 工具栏 */}
-      <div className="p-1 border-b border-gray-200 bg-gray-50">
-        {/* 搜索框 */}
-        <div className="relative mb-1">
-          <Search size={miniMode ? 8 : 10} className="absolute left-1.5 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          <Input
-            type="text"
-            placeholder={t('searchCollections')}
-            value={searchQuery}
-            onChange={(e) => searchCollections(e.target.value)}
-            className={`pl-5 ${searchBarHeight} ${textSize} border-gray-300`}
-          />
-        </div>
-        
-        {/* 操作按钮 */}
-        <div className="flex gap-1 mb-1">
-          {/* 新建按钮 */}
-          {isCreating ? (
-            <InlineEditor
-              value={newCollectionName}
-              onSave={handleCreateCollection}
-              onCancel={() => {
-                setIsCreating(false);
-                setNewCollectionName('');
-              }}
-              placeholder={t('enterCollectionName')}
-              miniMode={miniMode}
-            />
-          ) : (
+    <div className="h-full flex flex-col bg-gradient-to-b from-white to-gray-50">
+      {/* 美化的工具栏 */}
+      <div className="p-4 border-b border-gray-200 bg-white shadow-sm">
+        {/* 标题区域 */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Folder className="h-4 w-4 text-blue-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">集合</h3>
+            <Badge variant="secondary" className="bg-gray-100 text-gray-600">
+              {filteredCollections.length}
+            </Badge>
+          </div>
+          
+          {/* 操作按钮组 */}
+          <div className="flex items-center space-x-2">
             <Button
               size="sm"
               variant="outline"
-              onClick={() => setIsCreating(true)}
-              className={`flex-1 ${buttonHeight} ${textSize} justify-start`}
+              onClick={handleExpandAll}
+              className="h-8 px-3 text-xs"
             >
-              <Plus size={miniMode ? 8 : 10} className="mr-1" />
-              {t('newCollection')}
+              展开全部
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleCollapseAll}
+              className="h-8 px-3 text-xs"
+            >
+              收起全部
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuCheckboxItem
+                  checked={batchMode}
+                  onCheckedChange={setBatchMode}
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  批量操作模式
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={handleSelectAll}>
+                  <Check className="h-4 w-4 mr-2" />
+                  全选项目
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={handleClearSelection}>
+                  <X className="h-4 w-4 mr-2" />
+                  清除选择
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+        
+        {/* 美化的搜索框 */}
+        <div className="relative mb-3">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Input
+            type="text"
+            placeholder="搜索集合和请求..."
+            value={searchQuery}
+            onChange={(e) => searchCollections(e.target.value)}
+            className="pl-10 pr-4 h-10 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-lg"
+          />
+          {searchQuery && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => searchCollections('')}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-gray-100"
+            >
+              <X className="h-3 w-3" />
             </Button>
           )}
-          
-          {/* 设置按钮 */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className={`${buttonHeight} px-2`}>
-                <Settings size={miniMode ? 8 : 10} />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="text-xs">
-              <DropdownMenuCheckboxItem
-                checked={batchMode}
-                onCheckedChange={setBatchMode}
-              >
-                批量选择模式
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={handleExpandAll}>
-                展开全部
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={handleCollapseAll}>
-                收起全部
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={handleSelectAll}>
-                全选
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={handleClearSelection}>
-                清除选择
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
+        
+        {/* 新建集合按钮 */}
+        {isCreating ? (
+          <div className="flex items-center space-x-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="w-6 h-6 bg-blue-100 rounded-md flex items-center justify-center flex-shrink-0">
+              <Plus className="h-3 w-3 text-blue-600" />
+            </div>
+            <Input
+              value={newCollectionName}
+              onChange={(e) => setNewCollectionName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleCreateCollection();
+                if (e.key === 'Escape') {
+                  setIsCreating(false);
+                  setNewCollectionName('');
+                }
+              }}
+              placeholder="输入集合名称..."
+              className="flex-1 h-8 border-blue-300 focus:border-blue-500"
+              autoFocus
+            />
+            <Button
+              size="sm"
+              onClick={handleCreateCollection}
+              disabled={!newCollectionName.trim()}
+              className="h-8 px-3"
+            >
+              <Check className="h-3 w-3 mr-1" />
+              创建
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setIsCreating(false);
+                setNewCollectionName('');
+              }}
+              className="h-8 px-3"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+        ) : (
+          <Button
+            onClick={() => setIsCreating(true)}
+            className="w-full h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm transition-all duration-200 hover:shadow-md"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            新建集合
+          </Button>
+        )}
 
-        {/* 批量操作栏 */}
+        {/* 美化的批量操作栏 */}
         {batchMode && selectedItems.size > 0 && (
-          <div className="flex items-center gap-1 p-1 bg-blue-50 rounded-sm border">
-            <span className={`${textSize} text-blue-700 flex-1`}>
-              已选择 {selectedItems.size} 项
-            </span>
-            <Button size="sm" variant="outline" className={`${buttonHeight} px-2`}>
-              <Move size={miniMode ? 8 : 10} />
-            </Button>
-            <Button size="sm" variant="outline" className={`${buttonHeight} px-2`}>
-              <Copy size={miniMode ? 8 : 10} />
-            </Button>
-            <Button size="sm" variant="destructive" className={`${buttonHeight} px-2`}>
-              <Trash2 size={miniMode ? 8 : 10} />
-            </Button>
+          <div className="mt-3 flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center space-x-2">
+              <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                <Check className="h-3 w-3 text-blue-600" />
+              </div>
+              <span className="text-sm font-medium text-blue-900">
+                已选择 {selectedItems.size} 项
+              </span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <Button size="sm" variant="outline" className="h-8 px-3 border-blue-300">
+                <Move className="h-3 w-3 mr-1" />
+                移动
+              </Button>
+              <Button size="sm" variant="outline" className="h-8 px-3 border-blue-300">
+                <Copy className="h-3 w-3 mr-1" />
+                复制
+              </Button>
+              <Button size="sm" variant="destructive" className="h-8 px-3">
+                <Trash2 className="h-3 w-3 mr-1" />
+                删除
+              </Button>
+            </div>
           </div>
         )}
       </div>
 
-      {/* 集合列表 */}
-      <div className="flex-1 overflow-auto">
+      {/* 美化的集合列表 */}
+      <div className="flex-1 overflow-auto p-4">
         {filteredCollections.length === 0 ? (
-          <div className="p-2 text-center">
-            <div className={`text-gray-400 ${textSize}`}>{t('noCollections')}</div>
+          <div className="flex flex-col items-center justify-center h-64 text-center">
+            <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mb-4 shadow-inner">
+              {searchQuery ? (
+                <Search className="h-8 w-8 text-gray-400" />
+              ) : (
+                <Folder className="h-8 w-8 text-gray-400" />
+              )}
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {searchQuery ? '未找到匹配的集合' : '还没有集合'}
+            </h3>
+            <p className="text-gray-500 mb-6 max-w-sm">
+              {searchQuery 
+                ? '尝试调整搜索关键词，或创建一个新的集合' 
+                : '创建您的第一个请求集合来组织和管理API请求'
+              }
+            </p>
+            {!searchQuery && !isCreating && (
+              <Button
+                onClick={() => setIsCreating(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                创建第一个集合
+              </Button>
+            )}
           </div>
         ) : (
-          <div className="space-y-0.5 p-1">
-            {filteredCollections.map((collection) => (
-              <CollectionTreeItemEnhanced
+          <div className="space-y-3">
+            {filteredCollections.map((collection, index) => (
+              <div
                 key={collection.id}
-                collection={collection}
-                level={0}
-                onSelect={handleCollectionSelect}
-                onRequestSelect={handleRequestSelect}
-                miniMode={miniMode}
-                selectedItems={batchMode ? selectedItems : undefined}
-                onItemSelect={handleItemSelect}
-              />
+                className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden"
+                style={{
+                  animationDelay: `${index * 50}ms`,
+                  animation: 'fadeInUp 0.3s ease-out forwards'
+                }}
+              >
+                <CollectionTreeItemEnhanced
+                  collection={collection}
+                  level={0}
+                  onSelect={handleCollectionSelect}
+                  onRequestSelect={handleRequestSelect}
+                  miniMode={miniMode}
+                  selectedItems={batchMode ? selectedItems : undefined}
+                  onItemSelect={handleItemSelect}
+                />
+              </div>
             ))}
           </div>
         )}

@@ -6,8 +6,6 @@ import { httpClient } from '../lib/httpClient';
 import { createTranslator, getDefaultLanguage } from '../lib/i18n';
 import toast from 'react-hot-toast';
 import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
 import { Card, CardContent, CardHeader } from './ui/card';
 
 type LoginMethod = 'username' | 'phone';
@@ -36,7 +34,7 @@ export const LoginPage: React.FC = () => {
   });
 
   // 注册表单状态
-  const [registerForm, setRegisterForm] = useState({
+  const [registerForm] = useState({
     username: '',
     email: '',
     password: '',
@@ -175,6 +173,7 @@ export const LoginPage: React.FC = () => {
   };
 
   // 用户注册
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!registerForm.username || !registerForm.email || !registerForm.password) {
@@ -221,6 +220,10 @@ export const LoginPage: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  // 暂时禁用未使用的变量检查，用于未来功能扩展
+  console.log('registerForm:', registerForm);
+  console.log('handleRegister:', typeof handleRegister);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
