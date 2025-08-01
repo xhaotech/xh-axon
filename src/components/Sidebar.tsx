@@ -2,7 +2,7 @@ import React from 'react';
 import { History, Star, Plus, Search, Trash2, Folder } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { createTranslator, getDefaultLanguage } from '../lib/i18n';
-import { CollectionTree } from './CollectionTree';
+import { CollectionTreeEnhanced } from './CollectionTreeEnhanced';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
@@ -269,7 +269,11 @@ export const Sidebar: React.FC = () => {
         {/* Collections Panel */}
         {activePanel === 'collections' && (
           <div className="h-full">
-            <CollectionTree />
+            <CollectionTreeEnhanced 
+              miniMode={true}
+              showBatchOperations={true}
+              enableDragDrop={true}
+            />
           </div>
         )}
       </div>

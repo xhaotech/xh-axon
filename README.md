@@ -11,7 +11,7 @@
 
 ## 🚀 在线演示 · Live Demo
 
-- **生产环境**: [https://xh-axon.vercel.app](https://xh-axon.vercel.app)
+- **生产环境**: [http://xhaoai.com/ai/xhaxon](http://xhaoai.com/ai/xhaxonp)
 - **开发预览**: [http://localhost:3000](http://localhost:3000) (本地开发)
 
 ## 📊 项目状态 · Project Status

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, User, UserPlus, Trash2, Edit, Eye } from 'lucide-react';
-import { useI18n } from '../i18n';
+import { useI18n } from '../i18n/index';
 
 interface UserManagementModalProps {
   isOpen: boolean;

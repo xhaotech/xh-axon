@@ -12,7 +12,9 @@ import {
   Trash2,
   Copy,
   Move,
-  FolderPlus
+  FolderPlus,
+  X,
+  Check
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -35,16 +37,19 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { useCollectionStore } from '@/store/useCollectionStore';
+import { useAppStore } from '@/store/useAppStore';
 import { Collection, ApiRequest } from '@/types/collection';
+import { createTranslator, getDefaultLanguage } from '@/lib/i18n';
 
+// Mini风格的HTTP方法颜色配置 - 更紧凑的设计
 const HTTP_METHOD_COLORS = {
-  GET: 'bg-green-100 text-green-800',
-  POST: 'bg-blue-100 text-blue-800',
-  PUT: 'bg-orange-100 text-orange-800',
-  DELETE: 'bg-red-100 text-red-800',
-  PATCH: 'bg-yellow-100 text-yellow-800',
-  HEAD: 'bg-gray-100 text-gray-800',
-  OPTIONS: 'bg-purple-100 text-purple-800'
+  GET: 'bg-green-50 text-green-700 border-green-200 text-[10px] px-1 py-0.5',
+  POST: 'bg-blue-50 text-blue-700 border-blue-200 text-[10px] px-1 py-0.5',
+  PUT: 'bg-orange-50 text-orange-700 border-orange-200 text-[10px] px-1 py-0.5',
+  DELETE: 'bg-red-50 text-red-700 border-red-200 text-[10px] px-1 py-0.5',
+  PATCH: 'bg-yellow-50 text-yellow-700 border-yellow-200 text-[10px] px-1 py-0.5',
+  HEAD: 'bg-gray-50 text-gray-700 border-gray-200 text-[10px] px-1 py-0.5',
+  OPTIONS: 'bg-purple-50 text-purple-700 border-purple-200 text-[10px] px-1 py-0.5'
 };
 
 interface CollectionTreeItemProps {
@@ -53,6 +58,54 @@ interface CollectionTreeItemProps {
   onSelect: (collection: Collection) => void;
   onRequestSelect: (request: ApiRequest) => void;
 }
+
+// 内联编辑组件 - Mini风格
+const InlineEditor: React.FC<{
+  value: string;
+  onSave: (value: string) => void;
+  onCancel: () => void;
+  placeholder?: string;
+}> = ({ value, onSave, onCancel, placeholder }) => {
+  const [editValue, setEditValue] = useState(value);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      onSave(editValue.trim());
+    } else if (e.key === 'Escape') {
+      onCancel();
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-1 w-full">
+      <Input
+        value={editValue}
+        onChange={(e) => setEditValue(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onBlur={() => onSave(editValue.trim())}
+        placeholder={placeholder}
+        className="h-5 text-xs px-1 py-0 border-blue-300 focus:border-blue-500"
+        autoFocus
+      />
+      <Button
+        size="sm"
+        variant="ghost"
+        className="h-5 w-5 p-0 hover:bg-green-100"
+        onClick={() => onSave(editValue.trim())}
+      >
+        <Check className="h-3 w-3 text-green-600" />
+      </Button>
+      <Button
+        size="sm"
+        variant="ghost"
+        className="h-5 w-5 p-0 hover:bg-red-100"
+        onClick={onCancel}
+      >
+        <X className="h-3 w-3 text-red-600" />
+      </Button>
+    </div>
+  );
+};
 
 const CollectionTreeItem: React.FC<CollectionTreeItemProps> = ({
   collection,
@@ -68,6 +121,11 @@ const CollectionTreeItem: React.FC<CollectionTreeItemProps> = ({
     setDraggedItem,
     draggedItem
   } = useCollectionStore();
+  
+  const { addTab } = useAppStore(); // 添加Request Tab联动
+  const t = createTranslator(getDefaultLanguage());
+  
+  const [isEditing, setIsEditing] = useState(false);
 
   const isExpanded = expandedCollections.has(collection.id);
   const isSelected = selectedCollectionId === collection.id;
@@ -106,15 +164,25 @@ const CollectionTreeItem: React.FC<CollectionTreeItemProps> = ({
     setDraggedItem(null);
   };
 
+  // 处理重命名
+  const handleRename = (newName: string) => {
+    if (newName && newName !== collection.name) {
+      // TODO: 调用重命名API
+      console.log('Rename collection', collection.id, 'to', newName);
+    }
+    setIsEditing(false);
+  };
+
   return (
     <div className="select-none">
       <div
         className={cn(
-          "flex items-center gap-1 px-2 py-1 text-sm cursor-pointer hover:bg-accent rounded-sm",
-          isSelected && "bg-accent",
-          level > 0 && "ml-4"
+          // Mini风格 - 减小padding和字体大小
+          "group flex items-center gap-1 px-1 py-0.5 text-xs cursor-pointer hover:bg-blue-50 rounded-sm transition-colors",
+          isSelected && "bg-blue-100 text-blue-900",
+          level > 0 && "ml-2"
         )}
-        style={{ paddingLeft: `${level * 16 + 8}px` }}
+        style={{ paddingLeft: `${level * 12 + 4}px` }} // 减小缩进
         onClick={() => onSelect(collection)}
         onContextMenu={handleContextMenu}
         draggable
@@ -122,81 +190,118 @@ const CollectionTreeItem: React.FC<CollectionTreeItemProps> = ({
         onDragOver={handleDragOver}
         onDrop={handleDrop}
       >
+        {/* 展开/收起按钮 - Mini尺寸 */}
         <Button
           variant="ghost"
           size="sm"
-          className="h-4 w-4 p-0 hover:bg-transparent"
+          className="h-3 w-3 p-0 hover:bg-transparent"
           onClick={handleToggleExpansion}
         >
           {hasChildren ? (
             isExpanded ? (
-              <ChevronDown className="h-3 w-3" />
+              <ChevronDown className="h-2.5 w-2.5" />
             ) : (
-              <ChevronRight className="h-3 w-3" />
+              <ChevronRight className="h-2.5 w-2.5" />
             )
           ) : (
-            <div className="h-3 w-3" />
+            <div className="h-2.5 w-2.5" />
           )}
         </Button>
         
-        <div className="flex items-center gap-2 flex-1 min-w-0">
+        {/* 文件夹图标 - Mini尺寸 */}
+        <div className="flex items-center gap-1 flex-1 min-w-0">
           {isExpanded ? (
-            <FolderOpen className="h-4 w-4 text-blue-600 flex-shrink-0" />
+            <FolderOpen className="h-3 w-3 text-blue-600 flex-shrink-0" />
           ) : (
-            <Folder className="h-4 w-4 text-blue-600 flex-shrink-0" />
+            <Folder className="h-3 w-3 text-blue-600 flex-shrink-0" />
           )}
-          <span className="truncate">{collection.name}</span>
-          {(collection.requests?.length || 0) > 0 && (
-            <Badge variant="secondary" className="text-xs px-1 py-0">
-              {collection.requests?.length}
-            </Badge>
+          
+          {/* 集合名称或编辑框 */}
+          {isEditing ? (
+            <InlineEditor
+              value={collection.name}
+              onSave={handleRename}
+              onCancel={() => setIsEditing(false)}
+              placeholder={t('enterCollectionName')}
+            />
+          ) : (
+            <>
+              <span className="truncate text-xs font-medium">{collection.name}</span>
+              {/* 请求数量徽章 - Mini风格 */}
+              {(collection.requests?.length || 0) > 0 && (
+                <Badge variant="secondary" className="text-[9px] px-1 py-0 h-3 ml-1">
+                  {collection.requests?.length}
+                </Badge>
+              )}
+            </>
           )}
         </div>
 
+        {/* 右键菜单按钮 - Mini尺寸 */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
               size="sm"
-              className="h-4 w-4 p-0 opacity-0 group-hover:opacity-100"
+              className="h-3 w-3 p-0 opacity-0 group-hover:opacity-100 hover:bg-gray-200"
               onClick={(e) => e.stopPropagation()}
             >
-              <MoreHorizontal className="h-3 w-3" />
+              <MoreHorizontal className="h-2.5 w-2.5" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            <DropdownMenuItem>
-              <Plus className="h-4 w-4 mr-2" />
-              新建请求
+          <DropdownMenuContent align="start" className="text-xs">
+            <DropdownMenuItem onSelect={() => {
+              // 新建请求并在新标签页中打开
+              const newTab = {
+                id: Date.now().toString(),
+                name: t('newRequest'),
+                url: '',
+                method: 'GET' as const,
+                params: {},
+                headers: {},
+                auth: { 
+                  type: 'basic' as const,
+                  username: 'wecise.admin',
+                  password: 'admin'
+                },
+                isSaved: false,
+                isModified: false,
+                collectionId: collection.id // 关联到当前集合
+              };
+              addTab(newTab);
+            }}>
+              <Plus className="h-3 w-3 mr-1" />
+              {t('newRequest')}
             </DropdownMenuItem>
             <DropdownMenuItem>
-              <FolderPlus className="h-4 w-4 mr-2" />
-              新建文件夹
+              <FolderPlus className="h-3 w-3 mr-1" />
+              {t('newFolder')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <Edit className="h-4 w-4 mr-2" />
-              重命名
+            <DropdownMenuItem onSelect={() => setIsEditing(true)}>
+              <Edit className="h-3 w-3 mr-1" />
+              {t('rename')}
             </DropdownMenuItem>
             <DropdownMenuItem>
-              <Copy className="h-4 w-4 mr-2" />
-              复制
+              <Copy className="h-3 w-3 mr-1" />
+              {t('copy')}
             </DropdownMenuItem>
             <DropdownMenuItem>
-              <Move className="h-4 w-4 mr-2" />
-              移动
+              <Move className="h-3 w-3 mr-1" />
+              {t('move')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive">
-              <Trash2 className="h-4 w-4 mr-2" />
-              删除
+              <Trash2 className="h-3 w-3 mr-1" />
+              {t('delete')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
+      {/* 子项 - 递归渲染 */}
       {isExpanded && (
-        <div>
+        <div className="ml-1">
           {/* 子集合 */}
           {collection.children?.map((child) => (
             <CollectionTreeItem
@@ -208,9 +313,9 @@ const CollectionTreeItem: React.FC<CollectionTreeItemProps> = ({
             />
           ))}
           
-          {/* 请求项 */}
+          {/* 请求项 - Mini风格 */}
           {collection.requests?.map((request) => (
-            <RequestTreeItem
+            <RequestItem
               key={request.id}
               request={request}
               level={level + 1}
@@ -223,6 +328,7 @@ const CollectionTreeItem: React.FC<CollectionTreeItemProps> = ({
   );
 };
 
+// 请求项组件 - Mini风格
 interface RequestTreeItemProps {
   request: ApiRequest;
   level: number;

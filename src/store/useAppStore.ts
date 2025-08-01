@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { storage } from '../lib/storage';
 import { httpClient } from '../lib/httpClient';
 import { Collection, UserDataManager, CollectionManager } from '../lib/collections';
+import { ApiRequest } from '../types/collection';
 
 export interface HttpMethod {
   value: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
@@ -56,6 +57,9 @@ export interface RequestTab {
   auth: AuthConfig;
   isSaved: boolean;
   isModified: boolean;
+  // 新增集合关联字段
+  collectionId?: string;
+  requestId?: string;
 }
 
 export interface User {
@@ -88,7 +92,7 @@ interface AppState {
   updateEnvironment: (id: string, environment: Partial<Environment>) => void;
   deleteEnvironment: (id: string) => void;
 
-  // Request tabs
+  // Request tabs - 增强版本支持一一对应联动
   tabs: RequestTab[];
   activeTab: string | null;
   setTabs: (tabs: RequestTab[]) => void;
@@ -98,6 +102,12 @@ interface AppState {
   closeTab: (id: string) => void;
   saveTab: (id: string) => void;
   loadSavedRequests: () => Promise<void>;
+  
+  // 新增：集合与Tab联动方法
+  openRequestInTab: (request: ApiRequest) => void;
+  syncTabWithCollection: (tabId: string, collectionData: any) => void;
+  closeTabByRequestId: (requestId: string) => void;
+  getActiveRequestInCollection: () => string | null;
 
   // Request history (per-user)
   history: RequestHistory[];
@@ -840,6 +850,87 @@ export const useAppStore = create<AppState>((set) => ({
       collections: userData.collections
     });
     console.log('User data loaded for user:', state.auth.user.id);
+  },
+
+  // 集合与Tab联动方法实现
+  openRequestInTab: (request: ApiRequest) =>
+    set((state) => {
+      // 检查是否已有该请求的Tab
+      const existingTab = state.tabs.find((tab: RequestTab) => tab.requestId === request.id);
+      
+      if (existingTab) {
+        // 如果已存在，直接激活该Tab
+        return { activeTab: existingTab.id };
+      }
+      
+      // 创建新Tab
+      const newTab: RequestTab = {
+        id: Date.now().toString(),
+        name: request.name || `${request.method} ${request.url}`,
+        url: request.url,
+        method: request.method,
+        params: request.queryParams || {},
+        headers: request.headers || {},
+        auth: { 
+          type: 'basic' as const,
+          username: 'wecise.admin',
+          password: 'admin'
+        },
+        body: request.body?.content,
+        isSaved: true,
+        isModified: false,
+        collectionId: request.collectionId,
+        requestId: request.id
+      };
+      
+      const newTabs = [...state.tabs, newTab];
+      storage.saveTabs(newTabs);
+      storage.saveActiveTab(newTab.id);
+      
+      return { 
+        tabs: newTabs,
+        activeTab: newTab.id
+      };
+    }),
+
+  syncTabWithCollection: (tabId: string, collectionData: any) =>
+    set((state) => {
+      const newTabs = state.tabs.map((tab: RequestTab) =>
+        tab.id === tabId ? {
+          ...tab,
+          name: collectionData.name,
+          url: collectionData.url,
+          method: collectionData.method,
+          params: collectionData.queryParams || {},
+          headers: collectionData.headers || {},
+          body: collectionData.body?.content,
+          isModified: true
+        } : tab
+      );
+      storage.saveTabs(newTabs);
+      return { tabs: newTabs };
+    }),
+
+  closeTabByRequestId: (requestId: string) =>
+    set((state) => {
+      const tab = state.tabs.find((tab: RequestTab) => tab.requestId === requestId);
+      if (!tab) return state;
+      
+      const newTabs = state.tabs.filter((t: RequestTab) => t.id !== tab.id);
+      const activeTab = state.activeTab === tab.id 
+        ? (newTabs.length > 0 ? newTabs[0].id : null)
+        : state.activeTab;
+        
+      storage.saveTabs(newTabs);
+      storage.saveActiveTab(activeTab);
+      
+      return { tabs: newTabs, activeTab };
+    }),
+
+  getActiveRequestInCollection: () => {
+    // 此方法需要在组件中调用
+    // 在组件中使用: const activeRequestId = useAppStore((state) => state.tabs.find(t => t.id === state.activeTab)?.requestId)
+    return null;
   },
 
   // 保存用户数据
