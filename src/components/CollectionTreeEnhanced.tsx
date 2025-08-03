@@ -18,8 +18,8 @@ import {
   Settings
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -27,9 +27,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuCheckboxItem
-} from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
+} from './ui/dropdown-menu';
+import { Badge } from './ui/badge';
+import { Checkbox } from './ui/checkbox';
 import { useCollectionStore } from '@/store/useCollectionStore';
 import { useAppStore } from '@/store/useAppStore';
 import { Collection, ApiRequest } from '@/types/collection';

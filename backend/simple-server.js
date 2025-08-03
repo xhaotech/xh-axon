@@ -551,6 +551,113 @@ app.post('/api/proxy', async (req, res) => {
   }
 });
 
+// 集合管理相关端点
+let collections = [
+  {
+    id: 'collection-1',
+    name: '用户管理 API',
+    description: '用户相关的API接口集合',
+    userId: 'user-1',
+    children: [],
+    requests: [
+      {
+        id: 'req-1',
+        name: '用户登录',
+        method: 'POST',
+        url: '/api/auth/login',
+        headers: { 'Content-Type': 'application/json' },
+        body: { email: 'user@example.com', password: 'password' },
+        collectionId: 'collection-1',
+        userId: 'user-1',
+        order: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'req-2',
+        name: '获取用户信息',
+        method: 'GET',
+        url: '/api/user/profile',
+        headers: { Authorization: 'Bearer {{token}}' },
+        collectionId: 'collection-1',
+        userId: 'user-1',
+        order: 1,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    ],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    order: 0
+  }
+];
+
+// 获取所有集合
+app.get('/api/collections', (req, res) => {
+  console.log('Getting collections, count:', collections.length);
+  res.json(collections);
+});
+
+// 创建新集合
+app.post('/api/collections', (req, res) => {
+  const { name, description, parentId, userId } = req.body;
+  
+  const newCollection = {
+    id: `collection-${Date.now()}`,
+    name,
+    description,
+    userId: userId || 'user-1',
+    parentId: parentId || null,
+    children: [],
+    requests: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    order: collections.length
+  };
+  
+  collections.push(newCollection);
+  
+  console.log('Created collection:', newCollection.name);
+  res.status(201).json(newCollection);
+});
+
+// 更新集合
+app.put('/api/collections/:id', (req, res) => {
+  const { id } = req.params;
+  const updates = req.body;
+  
+  const collectionIndex = collections.findIndex(c => c.id === id);
+  
+  if (collectionIndex === -1) {
+    return res.status(404).json({ error: 'Collection not found' });
+  }
+  
+  collections[collectionIndex] = {
+    ...collections[collectionIndex],
+    ...updates,
+    updatedAt: new Date().toISOString()
+  };
+  
+  console.log('Updated collection:', id);
+  res.json(collections[collectionIndex]);
+});
+
+// 删除集合
+app.delete('/api/collections/:id', (req, res) => {
+  const { id } = req.params;
+  
+  const collectionIndex = collections.findIndex(c => c.id === id);
+  
+  if (collectionIndex === -1) {
+    return res.status(404).json({ error: 'Collection not found' });
+  }
+  
+  collections.splice(collectionIndex, 1);
+  
+  console.log('Deleted collection:', id);
+  res.json({ success: true });
+});
+
 // 启动服务器
 app.listen(PORT, () => {
   console.log(`🚀 XH Axon Backend Server running on port ${PORT}`);

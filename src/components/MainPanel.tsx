@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { Languages } from 'lucide-react';
 import { RequestTabs } from './RequestTabs';
 import RequestBuilder from './RequestBuilder';
+import { EnvironmentManager } from './EnvironmentManager';
 import { useAppStore } from '../store/useAppStore';
 import { createTranslator, getDefaultLanguage, Language } from '../lib/i18n';
 
 export const MainPanel: React.FC = () => {
-  const { tabs, activeTab, addTab } = useAppStore();
+  const { tabs, activeTab, activePanel, addTab } = useAppStore();
   const [language, setLanguage] = useState<Language>(getDefaultLanguage());
   const t = createTranslator(language);
 
@@ -29,32 +30,46 @@ export const MainPanel: React.FC = () => {
     addTab(newTab);
   };
 
-  // 测试函数：快速创建多个标签页
-  const createMultipleTabs = () => {
-    const methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'] as const;
-    const baseNames = ['Users API', 'Products API', 'Orders API', 'Auth API', 'Files API', 'Reports API', 'Settings API', 'Dashboard API'];
-    
-    for (let i = 0; i < 12; i++) {
-      const method = methods[i % methods.length];
-      const baseName = baseNames[i % baseNames.length];
-      const newTab = {
-        id: `test-${Date.now()}-${i}`,
-        name: `${baseName} ${i + 1}`,
-        url: `https://api.example.com/${baseName.toLowerCase().replace(' api', '')}/${i + 1}`,
-        method,
-        params: {},
-        headers: {},
-        auth: { 
-          type: 'basic' as const,
-          username: 'wecise.admin',
-          password: 'admin'
-        },
-        isSaved: false,
-        isModified: i % 3 === 0
-      };
-      setTimeout(() => addTab(newTab), i * 100); // 延迟添加以便观察滚动效果
+  // 渲染管理界面
+  const renderManagementView = () => {
+    switch (activePanel) {
+      case 'environments':
+        return <EnvironmentManager />;
+      default:
+        return null;
     }
   };
+
+  // 如果当前是管理面板视图，显示管理界面
+  if (activePanel === 'environments') {
+    return (
+      <div className="flex flex-col h-full bg-white">
+        {/* 管理界面标题栏 */}
+        <div className="border-b border-gray-200 bg-white px-4 py-3">
+          <div className="flex items-center justify-between">
+            <h1 className="text-lg font-semibold text-gray-900">
+              {activePanel === 'environments' && '环境变量管理'}
+            </h1>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setLanguage(language === 'zh' ? 'en' : 'zh')}
+                className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                title={language === 'zh' ? 'Switch to English' : '切换到中文'}
+              >
+                <Languages size={16} />
+                <span>{language === 'zh' ? 'EN' : '中文'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        {/* 管理界面内容 */}
+        <div className="flex-1 overflow-hidden">
+          {renderManagementView()}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full bg-white">
@@ -100,14 +115,6 @@ export const MainPanel: React.FC = () => {
                   >
                     {t('createNewRequest')}
                   </button>
-                  <div>
-                    <button 
-                      onClick={createMultipleTabs}
-                      className="bg-green-500 text-white px-6 py-2 text-sm font-medium hover:bg-green-600 transition-colors rounded-lg"
-                    >
-                      测试多标签页 (创建12个标签)
-                    </button>
-                  </div>
                 </div>
               </div>
             </div>

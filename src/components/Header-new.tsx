@@ -26,13 +26,11 @@ export const Header: React.FC = () => {
           <Menu size={14} className="text-gray-600" />
         </Button>
         
-        <div className="flex items-center space-x-2">
-          <img 
-            src="/logo.png" 
-            alt="XH-Axon Logo" 
-            className="w-6 h-6"
-          />
-          <span className="text-sm font-medium text-gray-900">XH-Axon</span>
+        <div className="flex items-center space-x-1">
+          <div className="w-5 h-5 bg-blue-500 flex items-center justify-center">
+            <span className="text-white font-bold text-xs">XH</span>
+          </div>
+          <span className="text-sm font-medium text-gray-900">Axon</span>
         </div>
       </div>
 

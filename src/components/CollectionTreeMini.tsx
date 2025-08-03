@@ -17,16 +17,16 @@ import {
   Check
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
 import { 
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
+} from './ui/dropdown-menu';
+import { Badge } from './ui/badge';
 import { useCollectionStore } from '@/store/useCollectionStore';
 import { useAppStore } from '@/store/useAppStore';
 import { Collection, ApiRequest } from '@/types/collection';

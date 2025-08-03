@@ -149,8 +149,8 @@ interface AppState {
   // UI state
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
-  activePanel: 'history' | 'favorites' | 'collections' | 'environments';
-  setActivePanel: (panel: 'history' | 'favorites' | 'collections' | 'environments') => void;
+  activePanel: 'history' | 'favorites' | 'environments';
+  setActivePanel: (panel: 'history' | 'favorites' | 'environments') => void;
 
   // Backend connection
   testBackendConnection: () => Promise<boolean>;
@@ -322,8 +322,11 @@ export const useAppStore = create<AppState>((set) => ({
     storage.saveSidebarCollapsed(sidebarCollapsed);
     set({ sidebarCollapsed });
   },
-  activePanel: storage.loadActivePanel(),
-  setActivePanel: (activePanel: 'history' | 'favorites' | 'collections' | 'environments') => {
+  activePanel: (() => {
+    const saved = storage.loadActivePanel();
+    return saved === 'collections' ? 'history' : saved as 'history' | 'favorites' | 'environments';
+  })(),
+  setActivePanel: (activePanel: 'history' | 'favorites' | 'environments') => {
     storage.saveActivePanel(activePanel);
     set({ activePanel });
   },

@@ -1,8 +1,7 @@
 import React from 'react';
-import { History, Star, Plus, Search, Trash2, Folder } from 'lucide-react';
+import { History, Star, Plus, Search, Trash2 } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { createTranslator, getDefaultLanguage } from '../lib/i18n';
-import { CollectionTreeEnhanced } from './CollectionTreeEnhanced';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
@@ -43,7 +42,6 @@ export const Sidebar: React.FC = () => {
   if (sidebarCollapsed) return null;
 
   const tabs = [
-    { id: 'collections', label: t('collections'), icon: Folder },
     { id: 'history', label: t('history'), icon: History },
     { id: 'favorites', label: t('favorites'), icon: Star },
   ];
@@ -86,17 +84,6 @@ export const Sidebar: React.FC = () => {
 
       {/* Content */}
       <div className="flex-1 overflow-hidden">
-        {/* Collections Panel */}
-        {activePanel === 'collections' && (
-          <div className="h-full">
-            <CollectionTreeEnhanced 
-              miniMode={true}
-              showBatchOperations={true}
-              enableDragDrop={true}
-            />
-          </div>
-        )}
-
         {/* History Panel */}
         {activePanel === 'history' && (
           <div className="h-full flex flex-col">
