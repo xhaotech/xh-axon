@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Wifi, Server, Clock, Globe } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
+import { getBackendPortDisplay } from '../lib/apiConfig';
 
 export const StatusBar: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -58,48 +59,48 @@ export const StatusBar: React.FC = () => {
   };
 
   return (
-    <div className="h-7 bg-gray-900 text-gray-200 flex items-center justify-between px-4 text-xs border-t border-gray-700 shadow-inner">
+    <div className="h-7 bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-blue-100 flex items-center justify-between px-4 text-xs border-t border-blue-700 shadow-inner">
       {/* Left section - Server Status */}
       <div className="flex items-center space-x-5">
         <div className="flex items-center space-x-1.5">
           <div className={`w-2 h-2 rounded-full ${frontendStatus ? 'bg-green-400' : 'bg-red-400'} animate-pulse`}></div>
-          <Globe size={12} className="text-gray-300" />
-          <span className="text-gray-300">
-            前端: <span className={frontendStatus ? 'text-green-400' : 'text-red-400'}>localhost:{getCurrentPort()}</span>
+          <Globe size={12} className="text-blue-200" />
+          <span className="text-blue-100">
+            前端: <span className={frontendStatus ? 'text-green-300' : 'text-red-300'}>localhost:{getCurrentPort()}</span>
           </span>
         </div>
         <div className="flex items-center space-x-1.5">
           <div className={`w-2 h-2 rounded-full ${backendStatus ? 'bg-green-400' : 'bg-red-400'} animate-pulse`}></div>
-          <Server size={12} className="text-gray-300" />
-          <span className="text-gray-300">
-            后端: <span className={backendStatus ? 'text-green-400' : 'text-red-400'}>localhost:3100</span>
+          <Server size={12} className="text-blue-200" />
+          <span className="text-blue-100">
+            后端: <span className={backendStatus ? 'text-green-300' : 'text-red-300'}>{getBackendPortDisplay()}</span>
           </span>
         </div>
-        <div className="h-4 w-px bg-gray-600"></div>
+        <div className="h-4 w-px bg-blue-600"></div>
         <div className="flex items-center space-x-1.5">
-          <Wifi size={12} className={backendStatus ? 'text-green-400' : 'text-yellow-400'} />
-          <span className={`font-medium ${backendStatus ? 'text-green-400' : 'text-yellow-400'}`}>
+          <Wifi size={12} className={backendStatus ? 'text-green-300' : 'text-yellow-300'} />
+          <span className={`font-medium ${backendStatus ? 'text-green-300' : 'text-yellow-300'}`}>
             {backendStatus ? '已连接' : '连接中断'}
           </span>
         </div>
       </div>
 
       {/* Center section - App Status */}
-      <div className="flex items-center space-x-6 text-gray-400">
+      <div className="flex items-center space-x-6 text-blue-200">
         <div className="flex items-center space-x-1">
-          <span className="text-gray-500">标签页</span>
-          <span className="bg-gray-700 px-1.5 py-0.5 rounded text-xs font-mono">{tabs.length}</span>
+          <span className="text-blue-300">标签页</span>
+          <span className="bg-blue-700 bg-opacity-60 px-1.5 py-0.5 rounded text-xs font-mono text-blue-100">{tabs.length}</span>
         </div>
         <div className="flex items-center space-x-1">
-          <span className="text-gray-500">历史</span>
-          <span className="bg-gray-700 px-1.5 py-0.5 rounded text-xs font-mono">{history.length}</span>
+          <span className="text-blue-300">历史</span>
+          <span className="bg-blue-700 bg-opacity-60 px-1.5 py-0.5 rounded text-xs font-mono text-blue-100">{history.length}</span>
         </div>
       </div>
 
       {/* Right section - Time */}
       <div className="flex items-center space-x-1.5">
-        <Clock size={12} className="text-gray-400" />
-        <span className="text-gray-300 font-mono">
+        <Clock size={12} className="text-blue-200" />
+        <span className="text-blue-100 font-mono">
           {formatDate(currentTime)} {formatTime(currentTime)}
         </span>
       </div>

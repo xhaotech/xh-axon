@@ -47,7 +47,7 @@ export const Sidebar: React.FC = () => {
   ];
 
   return (
-    <div className="w-72 bg-white border-r border-gray-200 flex flex-col fixed left-0 top-10 bottom-6">
+    <div className="w-72 bg-white border-r border-gray-200 flex flex-col fixed left-0 top-10 bottom-7">{/* 修改为bottom-7，与StatusBar高度h-7保持一致 */}
       {/* New Request Button */}
       <div className="p-2 border-b border-gray-200">
         <Button

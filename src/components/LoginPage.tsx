@@ -4,6 +4,7 @@ import { useAppStore } from '../store/useAppStore';
 import { validateUserLogin, validatePhoneLogin, demoUsers } from '../lib/auth';
 import { httpClient } from '../lib/httpClient';
 import { createTranslator, getDefaultLanguage } from '../lib/i18n';
+import { getHealthUrl } from '../lib/apiConfig';
 import toast from 'react-hot-toast';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader } from './ui/card';
@@ -47,7 +48,7 @@ export const LoginPage: React.FC = () => {
     console.log('Testing backend connection...');
     try {
       // 直接使用 fetch 测试
-      const response = await fetch('http://localhost:3100/health');
+      const response = await fetch(getHealthUrl());
       const data = await response.json();
       console.log('Direct fetch result:', { response, data });
       

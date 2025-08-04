@@ -1,8 +1,7 @@
 // API 配置
-export const API_CONFIG = {
-  BASE_URL: 'http://localhost:3100',
-  TIMEOUT: 30000,
-  VERSION: 'v1'
+export const config = {
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3100',
+  TIMEOUT: parseInt(import.meta.env.VITE_API_TIMEOUT || '10000'),
 };
 
 export const API_ENDPOINTS = {

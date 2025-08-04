@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+      - "3100:3100"
+    environment:
+      - NODE_ENV=production
+      - PORT=3100
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    
+  # 可选：单独的后端服务（如果需要独立部署）
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3100:3100"
+    environment:
+      - NODE_ENV=production
+      - PORT=3100
+      - CORS_ORIGIN=http://localhost
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3100/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    profiles:
+      - separate # 仅在使用 --profile separate 时启动

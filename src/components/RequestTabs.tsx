@@ -338,10 +338,10 @@ export const RequestTabs: React.FC = () => {
             <div
               key={tab.id}
               data-tab-id={tab.id}
-              className={`flex items-center gap-1 px-2 py-0.5 border-r border-gray-200 cursor-pointer group relative flex-shrink-0 h-full transition-all duration-150 ${
+              className={`flex items-center gap-1 px-2 py-0.5 border-r border-gray-200 cursor-pointer group relative flex-shrink-0 h-full transition-all duration-200 ${
                 activeTab === tab.id
-                  ? 'bg-white border-b border-blue-500 text-gray-900'
-                  : 'hover:bg-gray-100 text-gray-700'
+                  ? 'bg-white border-b-2 border-blue-600 text-gray-900'
+                  : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900'
               }`}
               style={{
                 minWidth: '80px',   // 增加最小宽度，确保内容显示完整
@@ -374,7 +374,11 @@ export const RequestTabs: React.FC = () => {
                 />
               ) : (
                 <span 
-                  className="text-xs truncate flex-1 min-w-0 font-medium cursor-pointer" 
+                  className={`text-xs truncate flex-1 min-w-0 cursor-pointer transition-all duration-200 ${
+                    activeTab === tab.id 
+                      ? 'font-medium text-gray-900' 
+                      : 'font-normal text-gray-700 group-hover:text-gray-900'
+                  }`}
                   title={tab.name}
                   style={{ 
                     minWidth: '20px',
@@ -388,7 +392,7 @@ export const RequestTabs: React.FC = () => {
               
               {/* 修改状态指示器 - Mini模式：更小 */}
               {tab.isModified && (
-                <div className="w-1 h-1 rounded-full bg-blue-400 flex-shrink-0"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0"></div>
               )}
               
               {/* 关闭按钮 - Mini模式：移除菜单按钮，只保留关闭 */}

@@ -61,7 +61,7 @@ function App() {
         <Sidebar />
         <div className={`flex-1 transition-all duration-200 ${
           sidebarCollapsed ? 'ml-0' : 'ml-72'
-        }`}>
+        } flex flex-col`}>
           <MainPanel />
         </div>
       </div>

@@ -65,6 +65,7 @@
 
 - **前端框架**: React 18 + TypeScript
 - **样式框架**: Tailwind CSS
+- **UI组件库**: shadcn/ui (现代化组件库)
 - **状态管理**: Zustand
 - **HTTP 客户端**: Axios
 - **图标库**: Lucide React
@@ -250,34 +251,52 @@ pm2 save
 pm2 startup
 ```
 
-##### Docker 部署
+#### Docker 部署
 
 创建 `Dockerfile`:
 
 ```dockerfile
-# 前端构建
-FROM node:18-alpine as frontend-build
+# 使用项目根目录的 Dockerfile
+FROM node:18-alpine as frontend-builder
 WORKDIR /app
-COPY package*.json ./
-RUN npm install
+COPY package*.json pnpm-lock.yaml ./
+RUN npm install -g pnpm && pnpm install --frozen-lockfile
 COPY . .
-RUN npm run build
+RUN pnpm run build
 
-# 后端
-FROM node:18-alpine as backend
+FROM node:18-alpine as backend-builder
 WORKDIR /app
 COPY backend/package*.json ./
-RUN npm install
+RUN npm install -g pnpm && pnpm install --frozen-lockfile --production
 COPY backend/ .
 
-# 最终镜像
 FROM nginx:alpine
-COPY --from=frontend-build /app/dist /usr/share/nginx/html
-COPY --from=backend /app /backend
-COPY nginx.conf /etc/nginx/nginx.conf
+RUN apk add --no-cache nodejs npm supervisor
+COPY --from=frontend-builder /app/dist /usr/share/nginx/html
+COPY --from=backend-builder /app /app/backend
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+# ... (完整配置见项目根目录 Dockerfile)
+```
 
-EXPOSE 80 3100
-CMD ["sh", "-c", "cd /backend && node simple-server.js & nginx -g 'daemon off;'"]
+构建和运行：
+
+```bash
+# 构建镜像
+pnpm run build:docker
+# 或手动构建
+docker build -t xh-axon:latest .
+
+# 运行容器
+docker run -p 80:80 -p 3100:3100 xh-axon:latest
+
+# 使用 docker-compose
+pnpm run docker:up
+
+# 查看日志
+pnpm run docker:logs
+
+# 停止服务
+pnpm run docker:down
 ```
 
 #### 环境变量配置
@@ -435,6 +454,18 @@ backend/
 - [x] **生产环境构建优化** (新增)
 
 ## 最新更新 · Latest Updates
+
+### v0.2.1 (2025-08-03)
+
+#### 🎨 UI组件库升级
+- **shadcn/ui 集成**：引入现代化的shadcn/ui组件库，提供更一致的设计系统
+- **扁平化Tab设计**：RequestTabs采用扁平化设计，仅用蓝色border-bottom高亮选中状态
+- **企业蓝色主题**：底部状态栏采用企业级蓝色渐变背景
+
+#### 🔧 用户体验优化
+- **Tab选中状态优化**：去除复杂的渐变背景，采用简洁的蓝色底边框设计
+- **文字样式简化**：选中tab使用适中的字重，提升可读性
+- **状态指示器统一**：修改状态指示器采用统一的蓝色样式
 
 ### v0.2.0 (2025-01-31)
 
