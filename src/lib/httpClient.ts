@@ -1,13 +1,13 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { API_CONFIG, ApiResponse, ApiError } from './api';
+import { config, ApiResponse, ApiError } from './api';
 
 class HttpClient {
   private instance: AxiosInstance;
 
   constructor() {
     this.instance = axios.create({
-      baseURL: API_CONFIG.BASE_URL,
-      timeout: API_CONFIG.TIMEOUT,
+      baseURL: config.BASE_URL,
+      timeout: config.TIMEOUT,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -159,7 +159,7 @@ class HttpClient {
   // 检查健康状态
   async checkHealth(): Promise<boolean> {
     try {
-      console.log('Testing backend connection to:', API_CONFIG.BASE_URL + '/health');
+      console.log('Testing backend connection to:', config.BASE_URL + '/health');
       const response = await this.get('/health');
       console.log('Backend response:', response);
       return !!(response.success && response.data?.status === 'ok');

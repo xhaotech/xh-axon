@@ -102,7 +102,7 @@ export interface ApiError {
 
 // 构建完整的 API URL
 export const buildApiUrl = (endpoint: string): string => {
-  return `${API_CONFIG.BASE_URL}${endpoint}`;
+  return `${config.BASE_URL}${endpoint}`;
 };
 
 // 替换 URL 参数

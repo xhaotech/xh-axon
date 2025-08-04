@@ -1,0 +1,16 @@
+
+> xh-axon@0.1.0 dev /Users/cnwangzd/Documents/cnwangzd/wangzd/小浩科技/项目管理/xhtech/xh-axon
+> vite
+
+
+  VITE v5.4.19  ready in 229 ms
+
+  ➜  Local:   http://localhost:3000/
+  ➜  Network: use --host to expose
+  ➜  press h + enter to show help
+10:03:56 [vite] hmr update /src/index.css, /src/components/LoginPageRedesigned.tsx, /src/App.tsx, /src/components/MainPanel.tsx, /src/components/Header.tsx, /src/components/Sidebar.tsx, /src/components/StatusBar.tsx, /src/components/RequestTabs.tsx, /src/components/EnvironmentManager.tsx, /src/components/UserSettingsModal.tsx, /src/components/RequestBuilder.tsx
+10:04:15 [vite] hmr update /src/index.css, /src/components/LoginPageRedesigned.tsx, /src/App.tsx, /src/components/MainPanel.tsx, /src/components/Header.tsx, /src/components/Sidebar.tsx, /src/components/StatusBar.tsx, /src/components/RequestTabs.tsx, /src/components/EnvironmentManager.tsx, /src/components/UserSettingsModal.tsx, /src/components/RequestBuilder.tsx
+10:04:57 [vite] hmr update /src/index.css, /src/components/LoginPageRedesigned.tsx, /src/App.tsx, /src/components/MainPanel.tsx, /src/components/Header.tsx, /src/components/Sidebar.tsx, /src/components/StatusBar.tsx, /src/components/RequestTabs.tsx, /src/components/EnvironmentManager.tsx, /src/components/UserSettingsModal.tsx, /src/components/RequestBuilder.tsx
+10:05:53 [vite] hmr update /src/index.css, /src/components/LoginPageRedesigned.tsx, /src/App.tsx, /src/components/MainPanel.tsx, /src/components/Header.tsx, /src/components/Sidebar.tsx, /src/components/StatusBar.tsx, /src/components/RequestTabs.tsx, /src/components/EnvironmentManager.tsx, /src/components/UserSettingsModal.tsx, /src/components/RequestBuilder.tsx
+10:06:33 [vite] hmr update /src/index.css, /src/components/LoginPageRedesigned.tsx, /src/App.tsx, /src/components/MainPanel.tsx, /src/components/Header.tsx, /src/components/Sidebar.tsx, /src/components/StatusBar.tsx, /src/components/RequestTabs.tsx, /src/components/EnvironmentManager.tsx, /src/components/UserSettingsModal.tsx, /src/components/RequestBuilder.tsx
+10:06:33 [vite] hmr update /src/index.css, /src/components/LoginPageRedesigned.tsx, /src/App.tsx, /src/components/MainPanel.tsx, /src/components/Header.tsx, /src/components/Sidebar.tsx, /src/components/StatusBar.tsx, /src/components/RequestTabs.tsx, /src/components/EnvironmentManager.tsx, /src/components/UserSettingsModal.tsx, /src/components/RequestBuilder.tsx
